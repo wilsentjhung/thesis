@@ -979,6 +979,8 @@ for hc in subjectCode:
 				coreq = "(COMP2121 && 75_WAM)"
 			elif (codeInUrl[0] == "COMP3891"):
 				coreq = "((COMP2121 || ELEC2142) && 75_WAM)"
+			elif (codeInUrl[0] == "COMP4128" and career == "UG"):
+				coreq = "(COMP3821 || (COMP3121 && 75_WAM)"
 			elif (codeInUrl[0] == "ELEC2134"):
 				coreq = "(ELEC1111 || ELEC1112)"
 			elif (codeInUrl[0] == "ENGG0380"):
