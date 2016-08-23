@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+#need course title and uoc
+
 import urllib2
 import re
 #from bs4 import BeautifulSoup
@@ -25,22 +27,24 @@ equiSentence = re.compile(r"<p>.*?([Ee]quivalent:.*?)<\/p>")
 equiOnlySentence = re.compile(r".*?([Ee]quivalent:.*)")
 exclSentence = re.compile(r"<p>.*?([Ee]xclu.*?:.*?)<\/p>")
 exclOnlySentence = re.compile(r".*?([Ee]xclu.*?:.*)")
+uocPattern = re.compile(r"<p><strong>Units of Credit:<\/strong>.*?([0-9]+)<\/p>")
+titlePattern = re.compile(r"<title>.*?-\s*(.*?)\s*- [A-Z]{4}[0-9]{4}<\/title>",  re.DOTALL)
 
 f = open("pre_reqs.sql", "w")
 f.write("DROP TABLE IF EXISTS pre_reqs;\n")
-f.write("CREATE TABLE pre_reqs (course_code text, career text, pre_req_conditions text, norm_pre_req_conditions text);\n")
+f.write("CREATE TABLE pre_reqs (course_code text, title text, uoc integer, career text, pre_req_conditions text, norm_pre_req_conditions text);\n")
 
 g = open("co_reqs.sql", "w")
 g.write("DROP TABLE IF EXISTS co_reqs;\n")
-g.write("CREATE TABLE co_reqs (course_code text, career text, co_req_conditions text, norm_co_req_conditions text);\n")
+g.write("CREATE TABLE co_reqs (course_code text, title text, uoc integer, career text, co_req_conditions text, norm_co_req_conditions text);\n")
 
 h = open("equivalence.sql", "w")
 h.write("DROP TABLE IF EXISTS equivalence;\n")
-h.write("CREATE TABLE equivalence (course_code text, career text, equivalence_conditions text, norm_equivalence_conditions text);\n")
+h.write("CREATE TABLE equivalence (course_code text, title text, uoc integer, career text, equivalence_conditions text, norm_equivalence_conditions text);\n")
 
 i = open("exclusion.sql", "w")
 i.write("DROP TABLE IF EXISTS exclusion;\n")
-i.write("CREATE TABLE exclusion (course_code text, career text, exclusion_conditions text, norm_exclusion_conditions text);\n")
+i.write("CREATE TABLE exclusion (course_code text, title text, uoc integer, career text, exclusion_conditions text, norm_exclusion_conditions text);\n")
 
 ugUrl = "http://www.handbook.unsw.edu.au/vbook2016/brCoursesByAtoZ.jsp?StudyLevel=Undergraduate&descr=All"
 ugHtml = urllib2.urlopen(ugUrl).read()
@@ -77,6 +81,8 @@ for hc in subjectCode:
 	equivalenceCondition = ""
 	exclusion = ""
 	exclusionCondition = ""
+	uoc = ""
+	title = ""
 
 	try:
 		codeInUrl = re.findall(codePattern, url2)
@@ -87,6 +93,10 @@ for hc in subjectCode:
 		courseCode2 = re.findall(coreqSentence, html2)
 		courseCode3 = re.findall(equiSentence, html2)
 		courseCode4 = re.findall(exclSentence, html2)
+		uoc = int(uocPattern.search(html2).group(1))
+		title = titlePattern.search(html2).group(1)
+		title = re.sub(r"\'", "\'\'", title, flags=re.IGNORECASE)
+
 		if courseCode3:
 			#print "trying"
 			equivalence = equiOnlySentence.search(courseCode3[0]).group(0)
@@ -99,6 +109,7 @@ for hc in subjectCode:
 			coreq = prereqOnlySentence.search(courseCode[0]).group(3)
 
 			prereqCondition = prereq
+			prereq = re.sub(r"\'", "\'\'", prereq, flags=re.IGNORECASE)
 			prereqCondition = re.sub(r"\'", "\'\'", prereqCondition, flags=re.IGNORECASE)
 
 			#remove prereq word
@@ -894,15 +905,14 @@ for hc in subjectCode:
 			prereq = re.sub(r'\(', '( ', prereq, flags=re.IGNORECASE)
 			prereq = re.sub(r'\)', ' )', prereq, flags=re.IGNORECASE)
 
-
 			
 
-			f.write("INSERT INTO pre_reqs (course_code, career, pre_req_conditions, norm_pre_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM pre_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, prereqCondition, prereq, codeInUrl[0], career))
+			f.write("INSERT INTO pre_reqs (course_code, title, uoc, career, pre_req_conditions, norm_pre_req_conditions) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM pre_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, prereqCondition, prereq, codeInUrl[0], career))
          
 			#print prereq[0].group()
 		else:
 			#print "went here"
-			f.write("INSERT INTO pre_reqs (course_code, career, pre_req_conditions, norm_pre_req_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM pre_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
+			f.write("INSERT INTO pre_reqs (course_code, title, uoc, career, pre_req_conditions, norm_pre_req_conditions) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM pre_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, codeInUrl[0], career))
 
 		if (courseCode2 or coreq):
 
@@ -919,6 +929,7 @@ for hc in subjectCode:
 				
 			
 			coreqCondition = coreq
+			coreq = re.sub(r"\'", "\'\'", coreq, flags=re.IGNORECASE)
 			coreqCondition = re.sub(r"\'", "\'\'", coreqCondition, flags=re.IGNORECASE)
 
 			#remove coreq word
@@ -1020,16 +1031,17 @@ for hc in subjectCode:
 
 
 
-			g.write("INSERT INTO co_reqs (course_code, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, coreqCondition, coreq, codeInUrl[0], career))
+			g.write("INSERT INTO co_reqs (course_code, title, uoc, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, coreqCondition, coreq, codeInUrl[0], career))
          
 			#print prereq[0].group()
 		else:
 			#print "went here"
-			g.write("INSERT INTO co_reqs (course_code, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
+			g.write("INSERT INTO co_reqs (course_code, title, uoc, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, codeInUrl[0], career))
 
 		if equivalence:
 			#print equivalence
 			equivalenceCondition = equivalence
+			equivalence = re.sub(r"\'", "\'\'", equivalence, flags=re.IGNORECASE)
 			equivalenceCondition = re.sub(r"\'", "\'\'", equivalenceCondition, flags=re.IGNORECASE)
 
 			#remove equivalence word
@@ -1098,16 +1110,17 @@ for hc in subjectCode:
 			#print equivalence
 			
 
-			h.write("INSERT INTO equivalence (course_code, career, equivalence_conditions, norm_equivalence_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM equivalence WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, equivalenceCondition, equivalence, codeInUrl[0], career))
+			h.write("INSERT INTO equivalence (course_code, title, uoc, career, equivalence_conditions, norm_equivalence_conditions) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM equivalence WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, equivalenceCondition, equivalence, codeInUrl[0], career))
          
 			#print prereq[0].group()
 		else:
 			#print "went here"
-			h.write("INSERT INTO equivalence (course_code, career, equivalence_conditions, norm_equivalence_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM equivalence WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
+			h.write("INSERT INTO equivalence (course_code, title, uoc, career, equivalence_conditions, norm_equivalence_conditions) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM equivalence WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, codeInUrl[0], career))
 
 		if exclusion:
 			#print exclusion
 			exclusionCondition = exclusion
+			exclusion = re.sub(r"\'", "\'\'", exclusion, flags=re.IGNORECASE)
 			exclusionCondition = re.sub(r"\'", "\'\'", exclusionCondition, flags=re.IGNORECASE)
 
 			#remove exclusion word
@@ -1224,15 +1237,17 @@ for hc in subjectCode:
 
 			
 
-			i.write("INSERT INTO exclusion (course_code, career, exclusion_conditions, norm_exclusion_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM exclusion WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, exclusionCondition, exclusion, codeInUrl[0], career))
+			i.write("INSERT INTO exclusion (course_code, title, uoc, career, exclusion_conditions, norm_exclusion_conditions) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM exclusion WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, exclusionCondition, exclusion, codeInUrl[0], career))
          
 			#print prereq[0].group()
 		else:
 			#print "went here"
-			i.write("INSERT INTO exclusion (course_code, career, exclusion_conditions, norm_exclusion_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM exclusion WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
+			i.write("INSERT INTO exclusion (course_code, title, uoc, career, exclusion_conditions, norm_exclusion_conditions) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM exclusion WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, codeInUrl[0], career))
 
 
 	except:
+		print title
+		print uoc
 		print codeInUrl,
 		print "No Handbook Entry"
 		#prereq = "WARNING"

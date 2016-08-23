@@ -3,20 +3,21 @@
 class Course {
     var $code;
     var $title;
-    var $mark;
-    var $grade;
     var $uoc;
-    var $term;
-    var $outcome;
+    var $prereq;
+    var $coreq;
+    var $equiv;
+    var $excl;
 
-    function __construct($code, $title, $mark, $grade, $uoc, $term, $outcome) {
+    function __construct($code, $title, $uoc, $prereq, $coreq, $equiv, $excl, $career) {
         $this->code = $code;
         $this->title = $title;
-        $this->mark = $mark;
-        $this->grade = $grade;
         $this->uoc = $uoc;
-        $this->term = $term;
-        $this->outcome = $outcome;
+        $this->prereq = $prereq;
+        $this->coreq = $coreq;
+        $this->equiv = $equiv;
+        $this->excl = $excl;
+        $this->career = $career
     }
 
     function getCode() {
@@ -27,24 +28,28 @@ class Course {
         return $this->title;
     }
 
-    function getMark() {
-        return $this->mark;
-    }
-
-    function getGrade() {
-        return $this->grade;
-    }
-
     function getUOC() {
         return $this->uoc;
     }
 
-    function getTerm() {
-        return $this->term;
+    function getPrereq() {
+        return $this->prereq;
     }
 
-    function getOutcome() {
-        return $this->outcome;
+    function getCoreq() {
+        return $this->coreq;
+    }
+
+    function getEquivalence() {
+        return $this->equiv;
+    }
+
+    function getExclusion() {
+        return $this->excl;
+    }
+
+    function getCareer() {
+        return $this->career;
     }
 }
 

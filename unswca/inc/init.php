@@ -4,6 +4,7 @@ include("obj/user.php");
 include("obj/program.php");
 include("obj/stream.php");
 include("obj/course.php");
+include("obj/courseTaken.php");
 
 // Construct Program object
 $i = 0;
@@ -44,6 +45,22 @@ while ($rows = pg_fetch_array($result)) {
 // Construct Course object
 $i = 0;
 $courses = array("");
+$query = "SELECT p.course_code AS code, p.title AS title, p.uoc AS uoc, p.career AS career, p.norm_pre_req_conditions AS prereq, 
+          c.norm_co_req_conditions AS coreq, q.norm_equivalence_conditions AS equivalence, 
+          x.norm_exclusion_conditions AS exclusion 
+          FROM pre_reqs p JOIN co_reqs c ON p.course_code = c.course_code AND p.career = c.career 
+          JOIN equivalence q ON c.course_code = q.course_code AND c.career = q.career
+          JOIN exclusion x ON q.course_code = x.course_code AND q.career = x.career";
+$result = pg_query($aims_db_connection, $query);
+while ($rows = pg_fetch_array($result)) {
+  $course = new Course($rows["code"], $rows["title"], $rows["uoc"], $rows["career"], $rows["prereq"], $rows["coreq"], $rows["equivalence"], $rows["exclusion"]);
+  $courses[$i++] = $course;
+
+}
+
+// Construct CourseTaken object
+$i = 0;
+$coursesTaken = array("");
 $wam = 0;
 $uoc = 0;
 $query = "SELECT tr.code AS code, tr.title AS title, tr.mark AS mark, tr.grade AS grade, s.uoc AS uoc, tr.term AS term, t.id
@@ -60,13 +77,13 @@ while ($rows = pg_fetch_array($result)) {
     $term = str_replace(" ", "", $rows["term"]);
     $outcome = checkCourseOutcome($mark, $grade);
 
-    $course = new Course($code, $title, $mark, $grade, $s_uoc, $term, $outcome);
-    $courses[$i++] = $course;
+    $courseTaken = new CourseTaken($code, $title, $mark, $grade, $s_uoc, $term, $outcome);
+    $coursesTaken[$i++] = $courseTaken;
 
     // Calculate completed UOC and UNSW WAM
     if ($outcome == 1) {
-        $wam += $course->getMark()*$course->getUOC();
-        $uoc += $course->getUOC();
+        $wam += $courseTaken->getMark()*$courseTaken->getUOC();
+        $uoc += $courseTaken->getUOC();
     }
 }
 $wam /= $uoc;
