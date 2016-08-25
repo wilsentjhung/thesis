@@ -1,6 +1,6 @@
 <?php
 
-class CourseTaken {
+class Course {
     var $code;
     var $title;
     var $uoc;
@@ -8,7 +8,6 @@ class CourseTaken {
     var $coreq;
     var $equiv;
     var $excl;
-
 
     public function __construct($code, $title, $uoc, $prereq, $coreq, $equiv, $excl, $career) {
         $this->code = $code;
@@ -18,7 +17,7 @@ class CourseTaken {
         $this->coreq = $coreq;
         $this->equiv = $equiv;
         $this->excl = $excl;
-        $this->career = $career
+        $this->career = $career;
     }
 
     public function getCode() {
@@ -29,27 +28,27 @@ class CourseTaken {
         return $this->title;
     }
 
-    function getUOC() {
+    public function getUOC() {
         return $this->uoc;
     }
 
-    function getPrereq() {
+    public function getPrereq() {
         return $this->prereq;
     }
 
-    function getCoreq() {
+    public function getCoreq() {
         return $this->coreq;
     }
 
-    function getEquivalence() {
+    public function getEquivalence() {
         return $this->equiv;
     }
 
-    function getExclusion() {
+    public function getExclusion() {
         return $this->excl;
     }
 
-    function getCareer() {
+    public function getCareer() {
         return $this->career;
     }
 }

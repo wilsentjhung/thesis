@@ -7,6 +7,7 @@ class CourseTaken {
     var $uoc;
     var $term;
     var $outcome;
+
     public function __construct($code, $title, $mark, $grade, $uoc, $term) {
         $this->code = $code;
         $this->title = $title;
@@ -14,28 +15,54 @@ class CourseTaken {
         $this->grade = $grade;
         $this->uoc = $uoc;
         $this->term = $term;
-        $this->outcome = checkCourseOutcome($mark, $grade);
+        $this->outcome = $this->checkCourseOutcome($mark, $grade);
     }
-    function getCode() {
+
+    public function getCode() {
         return $this->code;
     }
-    function getTitle() {
+
+    public function getTitle() {
         return $this->title;
     }
-    function getMark() {
+
+    public function getMark() {
         return $this->mark;
     }
-    function getGrade() {
+
+    public function getGrade() {
         return $this->grade;
     }
-    function getUOC() {
+
+    public function getUOC() {
         return $this->uoc;
     }
-    function getTerm() {
+
+    public function getTerm() {
         return $this->term;
     }
-    function getOutcome() {
+
+    public function getOutcome() {
         return $this->outcome;
     }
+
+    // Check the course outcome based on the given mark and grade
+    // Returns:
+    // 0 if active course
+    // 1 if passed course
+    // 2 if failed course
+    // 3 if not applicable course
+    private function checkCourseOutcome($mark, $grade) {
+        if ($mark == "" && $grade == "") {
+            return 0; // Active course
+        } else if ((is_numeric($mark) && $mark >= 50 && $grade != "UF") || $grade == "PC" || $grade == "SY") {
+            return 1; // Passed course
+        } else if ((is_numeric($mark) && $mark < 50 && $grade != "PC") || $grade == "FL" || $grade == "AF" || $grade == "UF") {
+            return 2; // Failed course
+        } else {
+            return 3; // Not applicable course
+        }
+    }
 }
+
 ?>

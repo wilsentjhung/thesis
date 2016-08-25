@@ -27,10 +27,12 @@ class User {
         // Construct ProgramTaken object
         $i = 0;
         $programs = array();
-        $query = "SELECT pr.id, pr.code AS code, pr.title AS title, pr.career AS career, pr.uoc AS uoc, MAX(pre.term_id)
+        $min_counter = $this->getMinCounter($zid, "program");
+        $query = "SELECT * FROM
+                  (SELECT pr.id, pr.code AS code, pr.title AS title, pr.career AS career, pr.uoc AS uoc, MAX(pre.term_id), COUNT(pr.id) AS counter
                   FROM people p, program_enrolments pre, programs pr
                   WHERE p.id = $zid AND p.id = pre.student_id AND pre.program_id = pr.id
-                  GROUP BY pr.id ORDER BY pr.id";
+                  GROUP BY pr.id ORDER BY pr.id) AS q WHERE q.counter = $min_counter";
         $result = pg_query($sims_db_connection, $query);
         while ($rows = pg_fetch_array($result)) {
             $code = str_ireplace(" ", "", $rows["code"]);
@@ -51,10 +53,12 @@ class User {
         // Construct StreamTaken object
         $i = 0;
         $streams = array();
-        $query = "SELECT st.id, st.code AS code, st.title AS title, st.career AS career, st.uoc AS uoc, MAX(ste.term_id)
-                  FROM people p, stream_enrolments ste, streams st
-                  WHERE p.id = $zid AND p.id = ste.student_id AND ste.stream_id = st.id
-                  GROUP BY st.id ORDER BY st.id";
+        $min_counter = $this->getMinCounter($zid, "stream");
+        $query = "SELECT * FROM
+                  (SELECT pr.id, pr.code AS code, pr.title AS title, pr.career AS career, pr.uoc AS uoc, MAX(pre.term_id), COUNT(pr.id) AS counter
+                  FROM people p, stream_enrolments pre, streams pr
+                  WHERE p.id = $zid AND p.id = pre.student_id AND pre.stream_id = pr.id
+                  GROUP BY pr.id ORDER BY pr.id) AS q WHERE q.counter = $min_counter";
         $result = pg_query($sims_db_connection, $query);
         while ($rows = pg_fetch_array($result)) {
             $code = str_ireplace(" ", "", $rows["code"]);
@@ -216,6 +220,21 @@ class User {
         }
 
         return $requirements;
+    }
+
+    private function getMinCounter($zid, $type) {
+        include("inc/pgsql.php");
+        $min_counter = 0;
+
+        $query = "SELECT MIN(q.counter) AS min_counter FROM (SELECT COUNT(pr.id) AS counter
+                  FROM people p, ${type}_enrolments pre, ${type}s pr
+                  WHERE p.id = $zid AND p.id = pre.student_id AND pre.${type}_id = pr.id
+                  GROUP BY pr.id ORDER BY pr.id) AS q";
+        $result = pg_query($sims_db_connection, $query);
+        $rows = pg_fetch_array($result);
+        $min_counter = $rows["min_counter"];
+
+        return $min_counter;
     }
 }
 
