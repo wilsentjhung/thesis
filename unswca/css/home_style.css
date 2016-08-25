@@ -131,3 +131,32 @@ body {
 	padding: 0;
 	cursor: pointer;
 }
+
+/* Planner board ------------------------------------------------------------------------------- */
+.board {
+    list-style: none;
+    padding: 5px;
+    background: #f5f5f5;
+    border-radius: 5px;
+    margin: 0 0 5px;
+    overflow-x: scroll;
+    height: 200px;
+    width: auto;
+    white-space: nowrap;
+}
+.term {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    width: 200px;
+    margin: 0 0.5%;
+    display: inline-block;
+    vertical-align: top;
+}
+.term.over {
+    padding-bottom: 55px;
+    background: url('http://www.cufonfonts.com/makeImage.php?width=650&id=1026&size=35&d=y&text=Drop%20Here') center bottom no-repeat #ccc;
+}
+.term.over li {
+    background: #fff;
+}

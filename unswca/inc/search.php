@@ -4,7 +4,7 @@
 	if (isset($_POST["input"]) && isset($_POST["type"])) {
 		$input = $_POST["input"];
 		$type = $_POST["type"];
-		$outputs = array("");
+		$outputs = array();
 		$i = 0;
 
 		echo "<ul id='reslist' class='reslist'>";

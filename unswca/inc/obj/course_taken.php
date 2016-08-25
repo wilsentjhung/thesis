@@ -1,6 +1,6 @@
 <?php
 
-class Course {
+class CourseTaken {
     var $code;
     var $title;
     var $mark;
@@ -9,41 +9,41 @@ class Course {
     var $term;
     var $outcome;
 
-    function __construct($code, $title, $mark, $grade, $uoc, $term, $outcome) {
+    public function __construct($code, $title, $mark, $grade, $uoc, $term) {
         $this->code = $code;
         $this->title = $title;
         $this->mark = $mark;
         $this->grade = $grade;
         $this->uoc = $uoc;
         $this->term = $term;
-        $this->outcome = $outcome;
+        $this->outcome = checkCourseOutcome($mark, $grade);
     }
 
-    function getCode() {
+    public function getCode() {
         return $this->code;
     }
 
-    function getTitle() {
+    public function getTitle() {
         return $this->title;
     }
 
-    function getMark() {
+    public function getMark() {
         return $this->mark;
     }
 
-    function getGrade() {
+    public function getGrade() {
         return $this->grade;
     }
 
-    function getUOC() {
+    public function getUOC() {
         return $this->uoc;
     }
 
-    function getTerm() {
+    public function getTerm() {
         return $this->term;
     }
 
-    function getOutcome() {
+    public function getOutcome() {
         return $this->outcome;
     }
 }

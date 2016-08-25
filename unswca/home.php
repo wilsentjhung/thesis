@@ -1,6 +1,4 @@
-<?php
-    include("inc/session.php")
-?>
+<?php include("inc/session.php"); ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -94,7 +92,7 @@
 
             <!-- Planner content -->
             <div id="planner-content" class="planner-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-
+                <?php include("inc/planner.php"); ?>
             </div>
         </div>
     </div>
@@ -109,9 +107,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>window.jQuery || document.write("<script src='assets/js/vendor/jquery.min.js'><\/script>")</script>
     <script src="components/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
-    <!-- Include REDIPS -->
-    <!-- <script src="components/REDIPS-drag-min/header.js"></script>
-	<script src="components/REDIPS-drag-min/redips-drag-min.js"></script>
-	<script src="inc/planner.js"></script> -->
+    <!-- Include redips -->
+	<script src="components/redips-drag-min/redips-drag-min.js"></script>
+	<script src="inc/planner.js"></script>
 </body>
 </html>
