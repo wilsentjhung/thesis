@@ -152,7 +152,7 @@ class User {
 
         foreach ($this->courses as $course) {
             if ($course->getOutcome() == 1) {   // Passed course
-                $key = $course->getCode() . $course->getCareer();
+                $key = $course->getCode();
                 $passed_courses[$key] = $course;
             }
         }
@@ -286,3 +286,4 @@ class User {
 }
 
 ?>
+

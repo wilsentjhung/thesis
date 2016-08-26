@@ -9,7 +9,7 @@ class Course {
     var $equiv;
     var $excl;
 
-    public function __construct($code, $title, $uoc, $prereq, $coreq, $equiv, $excl, $career) {
+    public function __construct($code, $title, $uoc, $career, $prereq, $coreq, $equiv, $excl) {
         $this->code = $code;
         $this->title = $title;
         $this->uoc = $uoc;

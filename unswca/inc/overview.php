@@ -63,4 +63,7 @@ foreach ($user->getStreams() as $stream) {
 }
 echo "</tbody></table></div>";
 
+//echo $user->getPassedCourses()["COMP1917"]->getTitle();
+//echo $courses["ACCT1501UG"]->getTitle();
+include ("prereq.php");
 ?>
