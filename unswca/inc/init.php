@@ -7,7 +7,7 @@ include("obj/course.php");
 // Construct User object --------------------------------------------------------------------------
 $user = new User($login_session);
 
-// Construct Course object
+// Construct Course object ------------------------------------------------------------------------
 $i = 0;
 $courses = array();
 $query = "SELECT p.course_code AS code, p.title AS title, p.uoc AS uoc, p.career AS career, p.norm_pre_req_conditions AS prereq,

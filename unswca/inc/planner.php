@@ -4,64 +4,34 @@ $i = 0;
 $prev = NULL;
 
 echo "<h2>My Plan</h2>";
-echo "<div id='board' class='board'>";
-/*foreach ($user->getCourses() as $course) {
-    if ($prev != $course->getTerm()) {
-        echo "<h3>" . $course->getTerm() . "</h3>";
-    }
+echo "<div id='planner' class='planner'>";
 
-    $prev = $course->getTerm();
-}*/
+echo "<div id='board' class='board'>";
 foreach ($user->getCourses() as $course) {
     if ($prev != $course->getTerm()) {
         if ($i == 0) {
-            echo "<div id='" . $course->getTerm() . "' class='term btn-group-vertical'>";
+            echo "<div id='" . $course->getTerm() . "' class='term btn-group-vertical' role='group'><h5>" . $course->getTerm() . "</h5>";
         } else {
-            echo "</div><div id='" . $course->getTerm() . "' class='term btn-group-vertical'>";
+            echo "</div><div id='" . $course->getTerm() . "' class='term btn-group-vertical' role='group'><h5>" . $course->getTerm() . "</h5>";
         }
     }
 
-    echo "<button id='" . $course->getCode() ."' class='btn btn-success'>" . $course->getCode() . "</button>";
+    echo "<button type='button' class='unit btn btn-success' style='border-radius: 0px; width: 200px;'>" . $course->getCode() . "</button>";
 
     $prev = $course->getTerm();
     $i++;
 }
 echo "</div></div>";
 
-foreach ($user->getPrograms() as $program) {
-    foreach ($program->getRequirements() as $requirement) {
-        if ($requirement->getRulT() == "CC") {
-
-        }
+echo "<div class='progression-checker'>";
+foreach ($user->getRemainingRequirements() as $raw_defn) {
+    echo "<div id='" . $raw_defn->getTitle() . "' class='requirement btn-group'>";
+    echo "<h2>" . $raw_defn->getTitle() . " (" . $raw_defn->getRulT() . ")</h2>";
+    foreach ($raw_defn->getRawDefn() as $requirement) {
+        echo "<button type='button' class='unit btn btn-success' style='border-radius: 0px; width: 200px;'>" . $requirement . "</button>";
     }
+    echo "</div><br>";
 }
-
-/*foreach ($user->getStreams() as $stream) {
-    $remaining_req_courses = getRemainingRequirements($stream->getRequirements(), $user->getCourses());
-
-    foreach ($remaining_req_courses as $req_course) {
-        echo $req_course . "<br>";
-    }
-}*/
-foreach ($user->getRemainingRequirements() as $rr) {
-    echo "<h2>" . $rr->getTitle() . " (" . $rr->getRulT() . ")</h2>";
-    foreach ($rr->getRawDefn() as $r) {
-        echo "<li id='" . $r . "'draggable='true'>" . $r . "</li>";
-    }
-    echo "<br><br>";
-}
+echo "</div></div>";
 
 ?>
-
-<h1>Planning board using HTML 5 Drag & Drop</h1>
-<div id="board" class="board">
-    <div>
-      <h3>Term 1</h3><h3>Term 2</h3><h3>Term 3</h3>
-    </div>
-    <ul id="todo" class="term">
-        <li id="item1" draggable="true">Task 1</li>
-        <li id="item2" draggable="true">Task 2</li>
-    </ul>
-    <ul id="inprogress" class="term"></ul>
-    <ul id="done" class="term"></ul>
-</div>

@@ -1,18 +1,21 @@
 <?php
+
 class CourseTaken {
     var $code;
     var $title;
     var $mark;
     var $grade;
+    var $career;
     var $uoc;
     var $term;
     var $outcome;
 
-    public function __construct($code, $title, $mark, $grade, $uoc, $term) {
+    public function __construct($code, $title, $mark, $grade, $career, $uoc, $term) {
         $this->code = $code;
         $this->title = $title;
         $this->mark = $mark;
         $this->grade = $grade;
+        $this->career = $career;
         $this->uoc = $uoc;
         $this->term = $term;
         $this->outcome = $this->checkCourseOutcome($mark, $grade);
@@ -34,6 +37,10 @@ class CourseTaken {
         return $this->grade;
     }
 
+    public function getCareer() {
+        return $this->career;
+    }
+    
     public function getUOC() {
         return $this->uoc;
     }
@@ -46,12 +53,13 @@ class CourseTaken {
         return $this->outcome;
     }
 
-    // Check the course outcome based on the given mark and grade
-    // Returns:
-    // 0 if active course
-    // 1 if passed course
-    // 2 if failed course
-    // 3 if not applicable course
+    // Check the course outcome
+    // @params $mark - course mark
+    // @params $grade - grade mark
+    // @return 0 if active course
+    //         1 if passed course
+    //         2 if failed course
+    //         3 if not applicable course (i.e. exchange, research course)
     private function checkCourseOutcome($mark, $grade) {
         if ($mark == "" && $grade == "") {
             return 0; // Active course

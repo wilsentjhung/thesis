@@ -6,7 +6,7 @@ class User {
     var $family_name;
     var $uoc;
     var $wam;
-    var $programs;
+    var $program;
     var $streams;
     var $courses;
 
@@ -25,41 +25,25 @@ class User {
         $family_name = $rows["family_name"];
 
         // Construct ProgramTaken object
-        $i = 0;
-        $programs = array();
-        $min_counter = $this->getMinCounter($zid, "program");
-        $query = "SELECT * FROM
-                  (SELECT pr.id, pr.code AS code, pr.title AS title, pr.career AS career, pr.uoc AS uoc, MAX(pre.term_id), COUNT(pr.id) AS counter
-                  FROM people p, program_enrolments pre, programs pr
-                  WHERE p.id = $zid AND p.id = pre.student_id AND pre.program_id = pr.id
-                  GROUP BY pr.id ORDER BY pr.id) AS q WHERE q.counter = $min_counter";
-        $result = pg_query($sims_db_connection, $query);
-        while ($rows = pg_fetch_array($result)) {
-            $code = str_ireplace(" ", "", $rows["code"]);
-            $title = $rows["title"];
-            $career = str_ireplace(" ", "", $rows["career"]);
-            $pr_uoc = str_ireplace(" ", "", $rows["uoc"]);
+        $result = $this->getTypeInfo($zid, "program");
+        $rows = pg_fetch_array($result);
+        $code = str_ireplace(" ", "", $rows["code"]);
+        $title = $rows["title"];
+        $career = str_ireplace(" ", "", $rows["career"]);
+        $pr_uoc = str_ireplace(" ", "", $rows["uoc"]);
 
-            // Check the school and faculty responsible for the program
-            $school_faculty = pg_fetch_array(getSchoolAndFaculty($code));
-            $school = $school_faculty["school"];
-            $faculty = $school_faculty["faculty"];
-            $requirements = $this->getRequirements($code);
+        // Check the school and faculty responsible for the program
+        $school_faculty = pg_fetch_array(getSchoolAndFaculty($code));
+        $school = $school_faculty["school"];
+        $faculty = $school_faculty["faculty"];
+        $requirements = $this->getRequirements($code);
 
-            $program = new ProgramTaken($code, $title, $career, $pr_uoc, $school, $faculty, $requirements);
-            $programs[$i++] = $program;
-        }
+        $program = new ProgramTaken($code, $title, $career, $pr_uoc, $school, $faculty, $requirements);
 
         // Construct StreamTaken object
         $i = 0;
         $streams = array();
-        $min_counter = $this->getMinCounter($zid, "stream");
-        $query = "SELECT * FROM
-                  (SELECT pr.id, pr.code AS code, pr.title AS title, pr.career AS career, pr.uoc AS uoc, MAX(pre.term_id), COUNT(pr.id) AS counter
-                  FROM people p, stream_enrolments pre, streams pr
-                  WHERE p.id = $zid AND p.id = pre.student_id AND pre.stream_id = pr.id
-                  GROUP BY pr.id ORDER BY pr.id) AS q WHERE q.counter = $min_counter";
-        $result = pg_query($sims_db_connection, $query);
+        $result = $this->getTypeInfo($zid, "stream");
         while ($rows = pg_fetch_array($result)) {
             $code = str_ireplace(" ", "", $rows["code"]);
             $title = $rows["title"];
@@ -79,36 +63,35 @@ class User {
         // Construct CourseTaken object
         $i = 0;
         $courses = array();
-        $numerator = 0;
-        $denominator = 0;
+        $numerator = 0;     // Numerator of the UNSW WAM calculation
+        $denominator = 0;   // Denominator of the UNSW WAM calculation
         $wam = 0;
         $uoc = 0;
-        $query = "SELECT tr.code AS code, tr.title AS title, tr.mark AS mark, tr.grade AS grade, s.uoc AS uoc, tr.term AS term, t.id
-                  FROM people p, transcript tr, subjects s, terms t
-                  WHERE p.id = $zid AND p.id = tr.student_id AND tr.code LIKE s.code AND tr.term LIKE t.code
-                  GROUP BY tr.code, tr.title, tr.mark, tr.grade, s.uoc, tr.term, t.id
-                  ORDER BY t.id, tr.code";
-        $result = pg_query($sims_db_connection, $query);
+        $result = $this->getCourseInfo($zid);
         while ($rows = pg_fetch_array($result)) {
             $code = str_ireplace(" ", "", $rows["code"]);
             $title = $rows["title"];
             $mark = str_ireplace(" ", "", $rows["mark"]);
             $grade = str_ireplace(" ", "", $rows["grade"]);
+            $career = str_ireplace(" ", "", $rows["career"]);
             $s_uoc = str_ireplace(" ", "", $rows["uoc"]);
             $term = str_ireplace(" ", "", $rows["term"]);
 
-            $course = new CourseTaken($code, $title, $mark, $grade, $s_uoc, $term);
+            $course = new CourseTaken($code, $title, $mark, $grade, $career, $s_uoc, $term);
             $courses[$i++] = $course;
 
             // Calculate completed UOC and UNSW WAM
-            if ($course->getOutcome() == 1) {
+            // UNSW WAM = sigma($mark*$uoc)/sigma($uoc)
+            if ($course->getGrade() == "SY") {          // i.e. COMP4930 (Thesis Part A)
+                $uoc += $course->getUOC();
+            } else if ($course->getOutcome() == 1) {    // Passed course
                 $numerator += $course->getMark()*$course->getUOC();
                 $denominator += $course->getUOC();
                 $uoc += $course->getUOC();
-            } else if ($course->getOutcome() == 2) {
+            } else if ($course->getOutcome() == 2) {    // Failed course
                 $numerator += $course->getMark()*$course->getUOC();
                 $denominator += $course->getUOC();
-            } else if ($course->getOutcome() == 3) {
+            } else if ($course->getOutcome() == 3) {    // i.e. exchange, research course
                 $uoc += $course->getUOC();
             }
         }
@@ -125,7 +108,7 @@ class User {
         $this->family_name = $family_name;
         $this->uoc = $uoc;
         $this->wam = $wam;
-        $this->programs = $programs;
+        $this->program = $program;
         $this->streams = $streams;
         $this->courses = $courses;
     }
@@ -150,8 +133,8 @@ class User {
         return $this->wam;
     }
 
-    public function getPrograms() {
-        return $this->programs;
+    public function getProgram() {
+        return $this->program;
     }
 
     public function getStreams() {
@@ -162,6 +145,23 @@ class User {
         return $this->courses;
     }
 
+    // Get the courses passed by the user
+    // @return $passed_courses - array of passed Course objects
+    public function getPassedCourses() {
+        $passed_courses = array();
+
+        foreach ($this->courses as $course) {
+            if ($course->getOutcome() == 1) {   // Passed course
+                $key = $course->getCode() . $course->getCareer();
+                $passed_courses[$key] = $course;
+            }
+        }
+
+        return $passed_courses;
+    }
+
+    // Get the remaining requirements of the program or stream taken
+    // @return $remaining_requirements - array of remaining Requirement objects
     public function getRemainingRequirements() {
         include("inc/pgsql.php");
         $i = 0;
@@ -174,14 +174,18 @@ class User {
                     $min = $requirement->getMin();
                     $max = $requirement->getMax();
                     $req_courses = explode(",", $requirement->getRawDefn());
-                    $remaining_req_courses = $req_courses;
+                    $remaining_req_courses = array_merge($remaining_req_courses, $req_courses);
 
                     foreach ($this->courses as $course) {
                         foreach ($req_courses as $req_course) {
-                            if (strpos($req_course, $course->getCode()) !== false) {
+                            if (strpos($req_course, $course->getCode()) !== false && $course->getOutcome() != 2) {
                                 $remaining_req_courses = removeArrayElements($remaining_req_courses, $req_course);
                             }
                         }
+                    }
+
+                    for ($j = 0; $j < $i; $j++) {
+                        $remaining_req_courses = removeArrayElements($remaining_req_courses, $remaining_requirements[$j]->getRawDefn());
                     }
 
                     if (!empty($remaining_req_courses)) {
@@ -195,7 +199,9 @@ class User {
         return $remaining_requirements;
     }
 
-    // Get the requirements of a program or stream based on the given code
+    // Get the requirements of a program or stream
+    // @params $code - program or stream code
+    // @return $requirements - array of Requirement objects
     private function getRequirements($code) {
         include("inc/pgsql.php");
         $i = 0;
@@ -222,14 +228,55 @@ class User {
         return $requirements;
     }
 
+    // Get the info of the program or course taken
+    // @params $zid - zID
+    // @params $type - either "program" or "stream"
+    // @return $result - DB result (require pg_fetch_array)
+    private function getTypeInfo($zid, $type) {
+        include("inc/pgsql.php");
+        $result = NULL;
+
+        $min_counter = $this->getMinCounter($zid, $type);
+        $query = "SELECT * FROM
+                     (SELECT t.id, t.code AS code, t.title AS title, t.career AS career, t.uoc AS uoc, MAX(te.term_id), COUNT(t.id) AS counter
+                     FROM people p, ${type}_enrolments te, ${type}s t
+                     WHERE p.id = $zid AND p.id = te.student_id AND te.${type}_id = t.id
+                     GROUP BY t.id ORDER BY t.id) AS q
+                  WHERE q.counter = $min_counter";
+        $result = pg_query($sims_db_connection, $query);
+
+        return $result;
+    }
+
+    // Get the info of the course taken
+    // @params $zid - zID
+    // @return $result - DB result (require pg_fetch_array)
+    private function getCourseInfo($zid) {
+        include("inc/pgsql.php");
+        $result = NULL;
+
+        $query = "SELECT tr.code AS code, tr.title AS title, tr.mark AS mark, tr.grade AS grade, tr.career AS career, tr.uoc AS uoc, tr.term AS term, t.id
+                  FROM transcript tr, terms t
+                  WHERE tr.student_id = $zid AND tr.term LIKE t.code
+                  GROUP BY tr.code, tr.title, tr.mark, tr.grade, tr.career, tr.uoc, tr.term, t.id
+                  ORDER BY t.id, tr.code";
+        $result = pg_query($sims_db_connection, $query);
+
+        return $result;
+    }
+
+    // Get the minimum counter (fix SIMS bugs)
+    // @params $zid - zID
+    // @params $type - either "program" or "stream"
+    // @return $min_counter
     private function getMinCounter($zid, $type) {
         include("inc/pgsql.php");
         $min_counter = 0;
 
-        $query = "SELECT MIN(q.counter) AS min_counter FROM (SELECT COUNT(pr.id) AS counter
-                  FROM people p, ${type}_enrolments pre, ${type}s pr
-                  WHERE p.id = $zid AND p.id = pre.student_id AND pre.${type}_id = pr.id
-                  GROUP BY pr.id ORDER BY pr.id) AS q";
+        $query = "SELECT MIN(q.counter) AS min_counter FROM (SELECT COUNT(t.id) AS counter
+                  FROM people p, ${type}_enrolments te, ${type}s t
+                  WHERE p.id = $zid AND p.id = te.student_id AND te.${type}_id = t.id
+                  GROUP BY t.id ORDER BY t.id) AS q";
         $result = pg_query($sims_db_connection, $query);
         $rows = pg_fetch_array($result);
         $min_counter = $rows["min_counter"];

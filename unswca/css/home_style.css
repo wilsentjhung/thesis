@@ -1,4 +1,6 @@
-/* Style for the Bootstrap --------------------------------------------------------------------- */
+/* ============================================================================================= */
+/* Style for the Bootstrap ===================================================================== */
+/* ============================================================================================= */
 body {
     padding-top: 50px;
 }
@@ -75,7 +77,9 @@ body {
     display: inline-block;
 }
 
-/* Custom style for this template -------------------------------------------------------------- */
+/* ============================================================================================= */
+/* Custom style for the template =============================================================== */
+/* ============================================================================================= */
 .report-content {
     display: none;
 }
@@ -132,31 +136,41 @@ body {
 	cursor: pointer;
 }
 
-/* Planner board ------------------------------------------------------------------------------- */
-.board {
+/* Planner ------------------------------------------------------------------------------------- */
+.planner {
     list-style: none;
+}
+
+.board {
     padding: 5px;
     background: #f5f5f5;
     border-radius: 5px;
     margin: 0 0 5px;
     overflow-x: scroll;
-    height: 200px;
-    width: auto;
+    overflow-y: hidden;
+    height: 250px;
+    width: 100%;
     white-space: nowrap;
 }
+
 .term {
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 10px;
-    width: 200px;
-    margin: 0 0.5%;
-    display: inline-block;
-    vertical-align: top;
+    height: 220px;
+    width: 220px;
+    margin: 0 10px 0 0;
+
 }
-.term.over {
-    padding-bottom: 55px;
-    background: url('http://www.cufonfonts.com/makeImage.php?width=650&id=1026&size=35&d=y&text=Drop%20Here') center bottom no-repeat #ccc;
+
+.progression-checker {
+    height: 280px;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    padding: 5px;
 }
-.term.over li {
-    background: #fff;
+
+.requirement {
+    width: 100%;
 }
