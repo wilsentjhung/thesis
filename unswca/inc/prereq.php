@@ -2,7 +2,7 @@
     function calculate_uoc_courses ($user, $uoc_required, $pattern) {
         $k = 0;
         $uoc_acquired = 0;
-        echo $pattern;
+        //echo $pattern;
         $keys = array_keys($user->getPassedCourses());
         $courses_passed = $user->getPassedCourses();
         while ($k < count($keys)) {
@@ -33,9 +33,12 @@
             //$course_counter++;
         //}
 
-        $courses_passed = $user->getPassedCourses();
-        if (array_key_exists($course_to_check, $courses_passed)) {
-            return 1;
+        if (preg_match("/^([A-Z]{4}[0-9]{4})/", $course_to_check, $coursecode_to_check)) {
+
+            $courses_passed = $user->getPassedCourses();
+            if (array_key_exists($coursecode_to_check[1], $courses_passed)) {
+                return 1;
+            }
         }
 
         return 0;
@@ -194,9 +197,9 @@
 
 
         $pre_req_evaluation_string = implode(" ", $pre_req_evaluation);
-        echo $courses[$key]->getPrereq();
+        //echo $courses[$key]->getPrereq();
 
-        echo $pre_req_evaluation_string;
+        //echo $pre_req_evaluation_string;
         if (preg_match("/(FALSE|TRUE)\s*\(/i", $pre_req_evaluation_string)) {
             return -1;
         }
@@ -355,9 +358,9 @@
 
 
         $co_req_evaluation_string = implode(" ", $co_req_evaluation);
-        echo $courses[$key]->getCoreq();
+        //echo $courses[$key]->getCoreq();
 
-        echo $co_req_evaluation_string;
+        //echo $co_req_evaluation_string;
         if (preg_match("/(FALSE|TRUE)\s*\(/i", $co_req_evaluation_string)) {
             return -1;
         }
@@ -414,9 +417,9 @@
 
 
         $equiv_req_evaluation_string = implode(" ", $equiv_req_evaluation);
-        echo $courses[$key]->getCoreq();
+        //echo $courses[$key]->getCoreq();
 
-        echo $equiv_req_evaluation_string;
+        //echo $equiv_req_evaluation_string;
         if (preg_match("/(FALSE|TRUE)\s*\(/i", $equiv_req_evaluation_string)) {
             return -1;
         }
@@ -473,29 +476,88 @@
 
 
         $excl_req_evaluation_string = implode(" ", $excl_req_evaluation);
-        echo $courses[$key]->getExclusion();
+        //echo $courses[$key]->getExclusion();
 
-        echo $excl_req_evaluation_string;
+        //echo $excl_req_evaluation_string;
         if (preg_match("/(FALSE|TRUE)\s*\(/i", $excl_req_evaluation_string)) {
             return -1;
         }
         return eval("return " . $excl_req_evaluation_string . ";");
     }
 
+    //course_to_check is course code + career
     function get_eligibility($user, $course_to_check, $courses) {
+
+        if (!array_key_exists($course_to_check, $courses)) {
+            echo "<br>$course_to_check NOT EVALUATED<br>";
+            return;
+        }
+
+        $check_this_course = $course_to_check;
+        $test_has_done_course = has_done_course($user, $check_this_course);
+        $test_pre = check_pre_req($user, $check_this_course, $courses);
+        $test_co = check_co_req($user, $check_this_course, $courses);
+        $test_equiv = check_equiv_req($user, $check_this_course, $courses);
+        $test_excl = check_excl_req($user, $check_this_course, $courses);
+        if ($test_has_done_course == 1) {
+            $test_has_done_course = 1;
+        } elseif ($test_has_done_course == -1) {
+        } else {
+            $test_has_done_course = 0;
+        }
+
+        if ($test_pre == 1) {
+            $test_pre = 1;
+        } elseif ($test_pre == -1) {
+        } else {
+            $test_pre = 0;
+        }
+         
+        if ($test_co == 1) {
+            $test_co = 1;
+        } elseif ($test_co == -1) {
+        } else {
+            $test_co = 0;
+        }
+         
+        if ($test_equiv == 1) {
+            $test_equiv = 1;
+        } elseif ($test_equiv == -1) {
+        } else {
+            $test_equiv = 0;
+        }
         
-        echo "<h2>Courses</h2>";
-        echo "<div><table class='table table-striped'>";
-        echo "<thead><tr><th>Course</th><th>Info</th><th>Eligible</th></tr></thead>";
-        echo "<tbody>";
+        if ($test_excl == 1) {
+            $test_excl = 1;
+        } elseif ($test_excl == -1) {
+        } else {
+            $test_excl = 0;
+        }
+
+        if (($test_has_done_course == -1) || ($test_pre == -1) || ($test_co == -1) || ($test_equiv == -1) || ($test_excl == -1)){
+            $test_final = -1;
+        } else {
+            $test_final = eval("return " . "(" . "(!(" . $test_has_done_course . "))&&" . $test_pre . "&&" . $test_co . "&&" . "(!(" .$test_equiv . "))&&" . "(!(" . $test_excl . ")))" . ";");
+        }
+
+        echo $check_this_course . " return " . "(" . "(!(" . $test_has_done_course . "))&&" . $test_pre . "&&" . $test_co . "&&" . "(!(" .$test_equiv . "))&&" . "(!(" . $test_excl . ")))" . ";";
+        echo "<br>";
+
+        if ($test_final == 1) {
+        
+            echo "<h2>Courses</h2>";
+            echo "<div><table class='table table-striped'>";
+            echo "<thead><tr><th>Course</th><th>Info</th><th>Eligible</th></tr></thead>";
+            echo "<tbody>";
 
         //while ($i < pg_num_rows($result)) {
         //    $course_result = pg_fetch_array($result);
+
+
             
-            $check_this_course = $course_to_check;
             echo "<tr><td>" . $check_this_course . "</td>";
             echo "<td><br>";
-            $test_has_done_course = has_done_course($user, $check_this_course);
+            //$test_has_done_course = has_done_course($user, $check_this_course);
             
             if ($test_has_done_course == 1) {
                 echo "done = TRUE";
@@ -509,7 +571,7 @@
             echo $test_has_done_course;
             echo "<br>";
 
-            $test_pre = check_pre_req($user, $check_this_course, $courses);
+            //$test_pre = check_pre_req($user, $check_this_course, $courses);
 
             if ($test_pre == 1) {
                 echo "prereq = TRUE";
@@ -523,7 +585,7 @@
             echo $test_pre;
             echo "<br>";
 
-            $test_co = check_co_req($user, $check_this_course, $courses);
+            //$test_co = check_co_req($user, $check_this_course, $courses);
 
             if ($test_co == 1) {
                 echo "coreq = TRUE";
@@ -537,7 +599,7 @@
             echo $test_co;
             echo "<br>";
 
-            $test_equiv = check_equiv_req($user, $check_this_course, $courses);
+            //$test_equiv = check_equiv_req($user, $check_this_course, $courses);
 
             if ($test_equiv == 1) {
                 echo "equivalence = TRUE";
@@ -551,7 +613,7 @@
             echo $test_equiv;
             echo "<br>";
 
-            $test_excl = check_excl_req($user, $check_this_course, $courses);
+            //$test_excl = check_excl_req($user, $check_this_course, $courses);
 
             if ($test_excl == 1) {
                 echo "exclusion = TRUE";
@@ -571,11 +633,7 @@
             //echo gettype($test_excl);
             echo "return " . "(" . "(!(" . $test_has_done_course . "))&&" . $test_pre . "&&" . $test_co . "&&" . "(!(" .$test_equiv . "))&&" . "(!(" . $test_excl . ")))" . ";";
             echo "<br>";
-            if (($test_has_done_course == -1) || ($test_pre == -1) || ($test_co == -1) || ($test_equiv == -1) || ($test_excl == -1)){
-                $test_final = -1;
-            } else {
-                $test_final = eval("return " . "(" . "(!(" . $test_has_done_course . "))&&" . $test_pre . "&&" . $test_co . "&&" . "(!(" .$test_equiv . "))&&" . "(!(" . $test_excl . ")))" . ";");
-            }
+            
             if ($test_final == 1) {
                 echo "final = TRUE";
             } elseif ($test_final == -1) {
@@ -590,17 +648,99 @@
         //}
         echo "</tbody>";
         echo "</table></div>";
-
-    }
-
-    $keys = array_keys($courses);
-    //key is course code + career
-    foreach ($keys as $key) {
-        if (strcmp($user->getProgram()->getCareer(), $courses[$key]->getCareer()) == 0) {
-            get_eligibility($user, $key, $courses);
         }
+
     }
+
+    //suggest all courses the student is eligible to take
+    function suggest1($user, $courses) {
+
+        $keys = array_keys($courses);
+        //key is course code + career
+        foreach ($keys as $key) {
+            if (strcmp($user->getProgram()->getCareer(), $courses[$key]->getCareer()) == 0) {
+                get_eligibility($user, $key, $courses);
+            }
+        }
+
+    }
+
+    //suggest courses based on popularity taken by other students with similar subjects
+    function suggest2($user, $courses) {
+        //echo $user->getZID();
+        include("inc/pgsql.php");
+        $suggest_query = "SELECT code, title 
+                          FROM (SELECT p.title, p.code, sum(p.counter) 
+                                FROM (SELECT * 
+                                      FROM (SELECT fd.student_id, fd.code, fd.title, count(*) AS counter 
+                                            FROM course_enrolments ce 
+                                            JOIN full_details fd ON fd.student_id = ce.student_id 
+                                            WHERE ce.course_id IN (
+                                                SELECT course_id 
+                                                FROM course_enrolments 
+                                                WHERE student_id = " . $user->getZID() . " AND 
+                                                (grade = 'PC' OR grade = 'PS' OR grade = 'CR' OR grade = 'DN' OR 
+                                                grade = 'HD' OR grade = 'SY')) 
+                                            GROUP BY fd.student_id, fd.title, fd.code 
+                                            ORDER BY counter DESC) AS q 
+                                      WHERE q.counter > 4) AS p 
+                                WHERE p.title NOT IN (
+                                    SELECT title 
+                                    FROM full_details 
+                                    WHERE student_id = " . $user->getZID() . ") 
+                                GROUP BY p.title, p.code 
+                                ORDER BY sum DESC) AS r;";
+        $suggest_result = pg_query($sims_db_connection, $suggest_query);
+        //echo "$suggest_query";
+        while ($rows = pg_fetch_array($suggest_result)) {
+            echo $rows["code"];
+            echo "<br>";
+            get_eligibility($user, $rows["code"] . $user->getProgram()->getCareer(), $courses);
+        }
+
+    }
+
+    //WIP
+    //suggest similar topics based on student course titles
+    /*function suggest3($user, $courses) {
+        $courses_passed = $user->getPassedCourses();
+        foreach ($courses_passed  as $c) {
+            $suggest_query = "SELECT s.title
+                              FROM course_enrolments ce
+                              JOIN courses c on ce.course_id = c.id
+                              JOIN subjects s on c.subject_id = s.id
+                              WHERE student_id = 3407134 AND
+                              (grade = 'PC' OR grade = 'PS' OR grade = 'CR' OR grade = 'DN' 
+                                OR grade = 'HD' OR grade = 'SY')";
+        $suggest_result = pg_query($sims_db_connection, $suggest_query);
+
+        }
+
+    }*/
+
+    //WIP
+    //suggest similar topics based on student course codes
+    function suggest4($user, $courses) {
+        $codes = array();
+        $courses_passed = $user->getPassedCourses();
+        foreach ($courses_passed as $c) {
+            $codes[$c->getCode()] = 1;
+        }
+
+
+    }
+
+    //suggest2($user, $courses);
+    echo "done";
     
     //echo $courses["COMP1917UG"]->getCode();
 
+
+    /*SELECT s.title
+    FROM course_enrolments ce
+    JOIN courses c on ce.course_id = c.id
+    JOIN subjects s on c.subject_id = s.id
+    WHERE student_id = 3407134 AND
+    (grade = 'PC' OR grade = 'PS' OR grade = 'CR' OR grade = 'DN' OR grade = 'HD' OR grade = 'SY')
+    */
 ?>
