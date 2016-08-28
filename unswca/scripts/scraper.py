@@ -385,7 +385,8 @@ for hc in subjectCode:
 				prereq = "(COMP3231{75} || COMP3891)"
 			elif (codeInUrl[0] == "COMP9242" and career == "PG"):
 				prereq = "(COMP9201{75} || COMP9283)"
-
+			elif (codeInUrl[0] == "COMP9242" and career == "PG"):
+				prereq = "((COMP9201 || COMP9283) && COMP9331)"
 			elif (codeInUrl[0] == "COMP9283"):
 				prereq = "(COMP9032{70} && COMP9024)"
 			#COMP9321 has coreq for postgrad
