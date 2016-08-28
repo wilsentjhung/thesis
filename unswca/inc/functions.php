@@ -39,8 +39,36 @@ function getSchoolAndFaculty($code) {
     return $result;
 }
 
-// Change the raw definition to be PostgreSQL-readable
-function toPGRawDefn($raw_defn) {
+// Get the next term code given the current term code
+// @param $current_term - current term code
+// @return $next_term - next term code
+function getNextTerm($current_term) {
+    $next_term = NULL;
+    $year = intval(substr($current_term, 0, 2));
+    $season = substr($current_term, 2, 1);
+    $semester = intval(substr($current_term, 3, 1));
+
+    if ($season == "x") {
+        $year++;
+        $season = "s";
+        $semester = 1;
+    } else if ($season == "s") {
+        if ($semester == 1) {
+            $season = "s";
+            $semester = 2;
+        } else if ($semester == 2) {
+            $season = "x";
+            $semester = 1;
+        }
+    }
+
+    $next_term = $year . $season . $semester;
+
+    return $next_term;
+}
+
+// Change the raw definition to be system-readable
+function toSystemRawDefn($raw_defn) {
     $raw_defn = str_ireplace("nil", "", $raw_defn);
     $raw_defn = str_ireplace("none", "", $raw_defn);
     $raw_defn = str_ireplace("#", "_", $raw_defn);

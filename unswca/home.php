@@ -19,7 +19,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="components/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom style for this template -->
+    <!-- Style for this template -->
     <link href="css/home_style.css" rel="stylesheet">
 
     <!-- Connect to the PostgreSQL databases -->
@@ -72,18 +72,18 @@
                 <!-- Buttons to switch between course, stream or program -->
                 <div class="btn-group btn-group-justified" data-toggle="buttons">
                     <label class="handbookbtn btn btn-primary active">
-                        <input id="coursebtn" type="radio" name="options" autocomplete="off" checked>Course
+                        <input type="radio" id="coursebtn" name="options" autocomplete="off" checked>Course
                     </label>
                     <label class="handbookbtn btn btn-primary">
-                        <input id="streambtn" type="radio" name="options" autocomplete="off">Stream
+                        <input type="radio" id="streambtn" name="options" autocomplete="off">Stream
                     </label>
                     <label class="handbookbtn btn btn-primary">
-                        <input id="programbtn" type="radio" name="options" autocomplete="off">Program
+                        <input type="radio" id="programbtn" name="options" autocomplete="off">Program
                     </label>
                 </div>
                 <!-- Search box -->
                 <div>
-                    <input id="searchinput" class="searchinput" type="text" placeholder="Search...">
+                    <input type="input" id="searchinput" class="searchinput" placeholder="Search...">
                     <div id="searchres" class="searchres"></div>
                 </div>
                 <!-- Info results -->
@@ -107,8 +107,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>window.jQuery || document.write("<script src='assets/js/vendor/jquery.min.js'><\/script>")</script>
     <script src="components/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
-    <!-- Include redips -->
-	<script src="components/redips-drag-min/redips-drag-min.js"></script>
-	<script src="inc/planner.js"></script>
+    <!-- Include REDIPS -->
+    <script src="components/REDIPS_drag/redips-drag-min.js"></script>
+    <script src="inc/planner.js"></script>
 </body>
 </html>

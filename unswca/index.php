@@ -16,7 +16,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="img/favicon.ico">
-    
+
     <!-- Include JQuery -->
     <script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
     <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
@@ -25,7 +25,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="components/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom styles for this template -->
+    <!-- Styles for this template -->
     <link href="css/index_style.css" rel="stylesheet">
 
     <!-- Connect to the PostgreSQL databases -->
@@ -41,12 +41,12 @@
             <div id="navbar" class="navbar-collapse collapse">
                 <form action="" method="post" class="navbar-form navbar-right">
                     <div class="form-group">
-                        <input name="zid" type="text" placeholder="zID" class="form-control">
+                        <input type="text" name="zid" placeholder="zID" class="form-control">
                     </div>
                     <div class="form-group">
-                        <input name="password" type="password" placeholder="Password" class="form-control">
+                        <input type="password" name="password" placeholder="Password" class="form-control">
                     </div>
-                    <button name="submit" type="submit" class="btn btn-success">Log in</button>
+                    <button type="submit" name="submit" class="btn btn-success">Log in</button>
                 </form>
             </div>
         </div>

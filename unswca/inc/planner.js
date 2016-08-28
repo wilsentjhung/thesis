@@ -1,27 +1,20 @@
-$(document).ready(function(){
-    $("li").bind("dragstart", function(event) {
-        event.originalEvent.dataTransfer.setData("text/plain",  event.target.getAttribute("id"));
-    });
+function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+}
 
-    $("ul").bind("dragover", function(event) {
-        event.preventDefault();
-    });
+function allowDrop(ev) {
+    ev.preventDefault();
+}
 
-    $("ul").bind("dragenter", function(event) {
-        $(this).addClass("over");
-    });
+function drop(ev) {
+    ev.preventDefault();
+    var data = ev.dataTransfer.getData("text");
 
-    $("ul").bind("dragleave drop", function(event) {
-        $(this).removeClass("over");
-    });
-
-    $("li").bind("drop", function(event) {
-        return false;
-    });
-
-    $("ul").bind("drop", function(event) {
-        var listitem = event.originalEvent.dataTransfer.getData("text/plain");
-        event.target.appendChild(document.getElementById(listitem));
-        event.preventDefault();
-    });
-});
+    if (ev.target.type != "button" && ev.target.childElementCount <= 5) {
+        if (ev.target.id.includes("requirement") && data.includes(ev.target.id)) {
+            ev.target.appendChild(document.getElementById(data));
+        } else if (ev.target.id.includes("term")) {
+            ev.target.appendChild(document.getElementById(data));
+        }
+    }
+}

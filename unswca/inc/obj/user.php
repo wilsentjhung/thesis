@@ -145,6 +145,14 @@ class User {
         return $this->courses;
     }
 
+    // Get the remaining UOC to complete the program
+    // @return $remaining_uoc - remaning UOC
+    public function getRemainingUOC() {
+        $remaining_uoc = $this->getProgram()->getUOC() - $this->uoc;
+
+        return $remaining_uoc;
+    }
+
     // Get the courses passed by the user
     // @return $passed_courses - array of passed Course objects
     public function getPassedCourses() {
@@ -152,7 +160,7 @@ class User {
 
         foreach ($this->courses as $course) {
             if ($course->getOutcome() == 1) {   // Passed course
-                $key = $course->getCode() . $course->getCareer();
+                $key = $course->getCode();
                 $passed_courses[$key] = $course;
             }
         }
@@ -173,11 +181,10 @@ class User {
                 if ($requirement->getRulT() == "CC") {
                     $min = $requirement->getMin();
                     $max = $requirement->getMax();
-                    $req_courses = explode(",", $requirement->getRawDefn());
-                    $remaining_req_courses = array_merge($remaining_req_courses, $req_courses);
+                    $remaining_req_courses = array_merge($remaining_req_courses, $requirement->getRawDefn());
 
                     foreach ($this->courses as $course) {
-                        foreach ($req_courses as $req_course) {
+                        foreach ($requirement->getRawDefn() as $req_course) {
                             if (strpos($req_course, $course->getCode()) !== false && $course->getOutcome() != 2) {
                                 $remaining_req_courses = removeArrayElements($remaining_req_courses, $req_course);
                             }
@@ -200,12 +207,13 @@ class User {
     }
 
     // Get the requirements of a program or stream
-    // @params $code - program or stream code
+    // @param $code - program or stream code
     // @return $requirements - array of Requirement objects
     private function getRequirements($code) {
         include("inc/pgsql.php");
         $i = 0;
         $requirements = array();
+        $raw_defn = array();
 
         $query = "SELECT rec_t, rul_t, title, appl, min, max, raw_defn
                   FROM active_rules
@@ -219,7 +227,7 @@ class User {
             $appl = $rows["appl"];
             $min = $rows["min"];
             $max = $rows["max"];
-            $raw_defn = toPGRawDefn($rows["raw_defn"]);
+            $raw_defn = explode(",", toSystemRawDefn($rows["raw_defn"]));
 
             $requirement = new Requirement($rec_t, $rul_t, $title, $appl, $min, $max, $raw_defn);
             $requirements[$i++] = $requirement;
@@ -229,8 +237,8 @@ class User {
     }
 
     // Get the info of the program or course taken
-    // @params $zid - zID
-    // @params $type - either "program" or "stream"
+    // @param $zid - zID
+    // @param $type - either "program" or "stream"
     // @return $result - DB result (require pg_fetch_array)
     private function getTypeInfo($zid, $type) {
         include("inc/pgsql.php");
@@ -239,8 +247,8 @@ class User {
         $min_counter = $this->getMinCounter($zid, $type);
         $query = "SELECT * FROM
                      (SELECT t.id, t.code AS code, t.title AS title, t.career AS career, t.uoc AS uoc, MAX(te.term_id), COUNT(t.id) AS counter
-                     FROM people p, ${type}_enrolments te, ${type}s t
-                     WHERE p.id = $zid AND p.id = te.student_id AND te.${type}_id = t.id
+                     FROM people p, {$type}_enrolments te, {$type}s t
+                     WHERE p.id = $zid AND p.id = te.student_id AND te.{$type}_id = t.id
                      GROUP BY t.id ORDER BY t.id) AS q
                   WHERE q.counter = $min_counter";
         $result = pg_query($sims_db_connection, $query);
@@ -249,7 +257,7 @@ class User {
     }
 
     // Get the info of the course taken
-    // @params $zid - zID
+    // @param $zid - zID
     // @return $result - DB result (require pg_fetch_array)
     private function getCourseInfo($zid) {
         include("inc/pgsql.php");
@@ -266,16 +274,16 @@ class User {
     }
 
     // Get the minimum counter (fix SIMS bugs)
-    // @params $zid - zID
-    // @params $type - either "program" or "stream"
+    // @param $zid - zID
+    // @param $type - either "program" or "stream"
     // @return $min_counter
     private function getMinCounter($zid, $type) {
         include("inc/pgsql.php");
         $min_counter = 0;
 
         $query = "SELECT MIN(q.counter) AS min_counter FROM (SELECT COUNT(t.id) AS counter
-                  FROM people p, ${type}_enrolments te, ${type}s t
-                  WHERE p.id = $zid AND p.id = te.student_id AND te.${type}_id = t.id
+                  FROM people p, {$type}_enrolments te, {$type}s t
+                  WHERE p.id = $zid AND p.id = te.student_id AND te.{$type}_id = t.id
                   GROUP BY t.id ORDER BY t.id) AS q";
         $result = pg_query($sims_db_connection, $query);
         $rows = pg_fetch_array($result);

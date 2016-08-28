@@ -141,26 +141,25 @@ body {
     list-style: none;
 }
 
-.board {
-    padding: 5px;
-    background: #f5f5f5;
+.plan-board {
+    background: #F5F5F5;
     border-radius: 5px;
+    height: 250px;
     margin: 0 0 5px;
     overflow-x: scroll;
     overflow-y: hidden;
-    height: 250px;
-    width: 100%;
+    padding: 5px;
     white-space: nowrap;
+    width: 100%;
 }
 
 .term {
-    border: 1px solid #ccc;
+    border: 2px solid #ccc;
     border-radius: 5px;
-    padding: 10px;
     height: 220px;
-    width: 220px;
     margin: 0 10px 0 0;
-
+    padding: 10px;
+    width: 220px;
 }
 
 .progression-checker {
@@ -168,7 +167,6 @@ body {
     width: 100%;
     overflow-x: hidden;
     overflow-y: scroll;
-    padding: 5px;
 }
 
 .requirement {
