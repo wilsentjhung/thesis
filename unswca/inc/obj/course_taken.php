@@ -40,7 +40,7 @@ class CourseTaken {
     public function getCareer() {
         return $this->career;
     }
-    
+
     public function getUOC() {
         return $this->uoc;
     }

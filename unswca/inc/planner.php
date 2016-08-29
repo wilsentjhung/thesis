@@ -113,9 +113,7 @@ var numTerms = <?php echo json_encode($num_terms); ?>;
 var numRequirements = <?php echo json_encode($num_requirements); ?>;
 
 function drag(ev) {
-
-
-    ev.dataTransfer.setData("text", ev.target.id);
+    ev.dataTransfer.setData("text", ev.target.id + "&" + ev.target.textContent);
 }
 
 function allowDrop(ev) {
@@ -125,10 +123,12 @@ function allowDrop(ev) {
 function drop(ev) {
     ev.preventDefault();
     var data = ev.dataTransfer.getData("text");
+    var idData = data.split("&")[0];
+    var textData = data.split("&")[1];
     var requirementAt = ev.target.id.split("-")[1];
-    var unitFrom = data.split("-")[2];
-    var unitUOC = parseInt(data.split("-")[4]);
-    var max = parseInt(data.split("-")[5]);
+    var unitFrom = idData.split("-")[2];
+    var unitUOC = parseInt(idData.split("-")[4]);
+    var max = parseInt(idData.split("-")[5]);
     var progressId = document.getElementById("progress-" + unitFrom).id;
     var progressVal  = parseInt($("#" + progressId).attr("aria-valuenow"));
 
@@ -138,8 +138,13 @@ function drop(ev) {
             var percentage = (100*progressVal)/max;
 
             if (progressVal >= 0 && progressVal <= max) {
-                $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
-                ev.target.appendChild(document.getElementById(data));
+                $.post("checker.php", {course_to_check: textData, courses_passed: coursesPassed}).success(function(data) {
+                    if (data == 1) {
+                        coursesPassed.push(textData + "-100-HD");
+                        $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
+                        ev.target.appendChild(document.getElementById(idData));
+                    }
+  				});
             }
         } else if (ev.target.id.includes("requirement")) {
             if (unitFrom == requirementAt) {
@@ -148,7 +153,7 @@ function drop(ev) {
 
                 if (progressVal >= 0 && progressVal <= max) {
                     $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
-                    ev.target.appendChild(document.getElementById(data));
+                    ev.target.appendChild(document.getElementById(idData));
                 }
             }
         }
@@ -181,12 +186,6 @@ function getNextTerm(code) {
     nextTerm = year + season + semester;
 
     return nextTerm;
-}
-
-// Add the given courses to the coursesPassed array
-// @param course - course code to be added
-function addCourseToCoursesPassed(course) {
-    coursesPassed.push(course);
 }
 
 // Remove the given course from the coursesPassed array
