@@ -676,18 +676,18 @@ class User {
     }
 
     // Get the courses passed by the user
-    // @return $passed_courses - array of passed Course objects
+    // @return $courses_passed - array of passed Course objects
     public function getPassedCourses() {
-        $passed_courses = array();
+        $courses_passed = array();
 
         foreach ($this->courses as $course) {
-            if ($course->getOutcome() == 1) {   // Passed course
+            if ($course->getOutcome() == 0 || $course->getOutcome() == 1) {   // Active or passed course
                 $key = $course->getCode();
-                $passed_courses[$key] = $course;
+                $courses_passed[$key] = $course;
             }
         }
 
-        return $passed_courses;
+        return $courses_passed;
     }
 
     public function getZID() {
@@ -747,7 +747,10 @@ class User {
             $appl = $rows["appl"];
             $min = $rows["min"];
             $max = $rows["max"];
-            $defn_list = explode(",", toSystemRawDefn($rows["raw_defn"]));
+            if ($max == null) {
+                $max = $min;
+            }
+            $defn_list = explode(",", toPHPRawDefn($rows["raw_defn"]));
             foreach ($defn_list as $defn) {
                 $key = $defn . $career;
 
@@ -773,7 +776,23 @@ class User {
                     $course_coreq = $all_courses[$key]->getCoreq();
                     $course_equiv = $all_courses[$key]->getEquiv();
                     $course_excl = $all_courses[$key]->getExcl();
-                    $raw_defn[$j++] = new Course($course_codes, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                    $raw_defn[$j++] = new Course($defn, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                } else if (strpos($defn, ".") !== false && strlen($code) != 4) {
+                    foreach ($all_courses as $course) {
+                        $key = $course->getCode() . $career;
+
+                        if (preg_match("/$defn/", $course->getCode()) && array_key_exists($key, $all_courses)) {
+                            $course_code = $all_courses[$key]->getCode();
+                            $course_title = $all_courses[$key]->getTitle();
+                            $course_career = $all_courses[$key]->getCareer();
+                            $course_uoc = $all_courses[$key]->getUOC();
+                            $course_prereq = $all_courses[$key]->getPrereq();
+                            $course_coreq = $all_courses[$key]->getCoreq();
+                            $course_equiv = $all_courses[$key]->getEquiv();
+                            $course_excl = $all_courses[$key]->getExcl();
+                            $raw_defn[$j++] = new Course($course_code, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                        }
+                    }
                 } else {
                     $raw_defn[$j++] = new Course($defn, null, $career, null, null, null, null, null);
                 }

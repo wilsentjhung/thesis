@@ -67,11 +67,11 @@ function getNextTerm($code) {
     return $next_term;
 }
 
-// Change the raw definition to be system-readable
-function toSystemRawDefn($raw_defn) {
+// Change the raw definition to be PHP-readable
+function toPHPRawDefn($raw_defn) {
     $raw_defn = str_ireplace("nil", "", $raw_defn);
     $raw_defn = str_ireplace("none", "", $raw_defn);
-    $raw_defn = str_ireplace("#", "_", $raw_defn);
+    $raw_defn = str_ireplace("#", ".", $raw_defn);
     $raw_defn = str_ireplace(";", "|", $raw_defn);
     $raw_defn = str_ireplace("{", "(", $raw_defn);
     $raw_defn = str_ireplace("}", ")", $raw_defn);
@@ -81,14 +81,14 @@ function toSystemRawDefn($raw_defn) {
 
 // Change the PostgreSQL-readable raw definition to be UI-readable
 function toUIRawDefn($raw_defn) {
-    $raw_defn = str_ireplace("_", "#", $raw_defn);
+    $raw_defn = str_ireplace(".", "#", $raw_defn);
     $raw_defn = str_ireplace("|", " or ", $raw_defn);
     $raw_defn = str_ireplace(",", ", ", $raw_defn);
 
     return $raw_defn;
 }
 
-// Remove specific elements of the given array
+// Remove specific elements from the given array
 function removeArrayElements($array, $del_vals) {
     if (is_array($del_vals)) {
          foreach ($del_vals as $del_key => $del_val) {

@@ -110,6 +110,5 @@
     <script src="components/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
     <!-- Include REDIPS -->
     <script src="components/REDIPS_drag/redips-drag-min.js"></script>
-    <script src="inc/planner.js"></script>
 </body>
 </html>
