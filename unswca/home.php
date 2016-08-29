@@ -25,9 +25,10 @@
     <!-- Connect to the PostgreSQL databases -->
     <?php include("inc/pgsql.php"); ?>
     <!-- Include necessary PHP functions -->
-    <?php include("inc/functions.php") ?>
+    <?php include("inc/functions.php"); ?>
+    <?php include("inc/prereq.php"); ?>
     <!-- User initialisation -->
-    <?php include("inc/init.php") ?>
+    <?php include("inc/init.php"); ?>
 </head>
 
 <body>

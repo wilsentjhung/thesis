@@ -39,14 +39,14 @@ function getSchoolAndFaculty($code) {
     return $result;
 }
 
-// Get the next term code given the current term code
-// @param $current_term - current term code
+// Get the next term code given the term code
+// @param $code - term code
 // @return $next_term - next term code
-function getNextTerm($current_term) {
+function getNextTerm($code) {
     $next_term = NULL;
-    $year = intval(substr($current_term, 0, 2));
-    $season = substr($current_term, 2, 1);
-    $semester = intval(substr($current_term, 3, 1));
+    $year = intval(substr($code, 0, 2));
+    $season = substr($code, 2, 1);
+    $semester = intval(substr($code, 3, 1));
 
     if ($season == "x") {
         $year++;

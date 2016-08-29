@@ -3,21 +3,22 @@
 class Course {
     var $code;
     var $title;
+    var $career;
     var $uoc;
     var $prereq;
     var $coreq;
     var $equiv;
     var $excl;
 
-    public function __construct($code, $title, $uoc, $career, $prereq, $coreq, $equiv, $excl) {
+    public function __construct($code, $title, $career, $uoc, $prereq, $coreq, $equiv, $excl) {
         $this->code = $code;
         $this->title = $title;
+        $this->career = $career;
         $this->uoc = $uoc;
         $this->prereq = $prereq;
         $this->coreq = $coreq;
         $this->equiv = $equiv;
         $this->excl = $excl;
-        $this->career = $career;
     }
 
     public function getCode() {
@@ -26,6 +27,10 @@ class Course {
 
     public function getTitle() {
         return $this->title;
+    }
+
+    public function getCareer() {
+        return $this->career;
     }
 
     public function getUOC() {
@@ -40,16 +45,12 @@ class Course {
         return $this->coreq;
     }
 
-    public function getEquivalence() {
+    public function getEquiv() {
         return $this->equiv;
     }
 
-    public function getExclusion() {
+    public function getExcl() {
         return $this->excl;
-    }
-
-    public function getCareer() {
-        return $this->career;
     }
 }
 
