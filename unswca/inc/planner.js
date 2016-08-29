@@ -11,13 +11,7 @@ var plan = [];
 };*/
 
 function drag(ev) {
-    var unitFrom = ev.target.id.split("-")[2];
-    var progressId = document.getElementById("progress-" + unitFrom).id;
-    var progressVal  = $("#" + progressId).attr("aria-valuenow");
-
-    if (progressVal >= 0 && progressVal <= 100) {
-        ev.dataTransfer.setData("text", ev.target.id);
-    }
+    ev.dataTransfer.setData("text", ev.target.id);
 }
 
 function allowDrop(ev) {
@@ -27,22 +21,33 @@ function allowDrop(ev) {
 function drop(ev) {
     ev.preventDefault();
     var data = ev.dataTransfer.getData("text");
-    var unitFrom = data.split("-")[2];
     var requirementAt = ev.target.id.split("-")[1];
+    var unitFrom = data.split("-")[2];
+    var unitUOC = parseInt(data.split("-")[4]);
+    var max = parseInt(data.split("-")[5]);
     var progressId = document.getElementById("progress-" + unitFrom).id;
-    var progressVal  = $("#" + progressId).attr("aria-valuenow");
+    var progressVal  = parseInt($("#" + progressId).attr("aria-valuenow"));
 
     if (ev.target.type != "button") {
         if (ev.target.id.includes("term") && ev.target.childElementCount <= 5) {
-            $("#" + progressId).attr("aria-valuenow", progressVal + 6).css("width, progressVal + 6");
-            ev.target.appendChild(document.getElementById(data));
-        } else if (ev.target.id.includes("requirement")) {
-            if (unitFrom == requirementAt) {
-                $("#" + progressId).attr("aria-valuenow", progressVal + 6).css("width, progressVal + 6");
+            progressVal += unitUOC;
+            var percentage = (100*progressVal)/max;
+
+            if (progressVal >= 0 && progressVal <= max) {
+                $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
                 ev.target.appendChild(document.getElementById(data));
             }
+        } else if (ev.target.id.includes("requirement")) {
+            if (unitFrom == requirementAt) {
+                progressVal -= unitUOC;
+                var percentage = (100*progressVal)/max;
+
+                if (progressVal >= 0 && progressVal <= max) {
+                    $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
+                    ev.target.appendChild(document.getElementById(data));
+                }
+            }
         }
-        alert($("#" + progressId).attr("aria-valuenow"));
     }
 }
 

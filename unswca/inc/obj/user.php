@@ -761,6 +761,19 @@ class User {
                     $course_equiv = $all_courses[$key]->getEquiv();
                     $course_excl = $all_courses[$key]->getExcl();
                     $raw_defn[$j++] = new Course($course_code, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                } else if (strpos($defn, "|") !== false) {
+                    $course_codes = str_ireplace("(", "", $defn);
+                    $course_codes = str_ireplace(")", "", $course_codes);
+                    $course_code = explode("|", $course_codes)[0];
+                    $key = $course_code . $career;
+                    $course_title = $all_courses[$key]->getTitle();
+                    $course_career = $all_courses[$key]->getCareer();
+                    $course_uoc = $all_courses[$key]->getUOC();
+                    $course_prereq = $all_courses[$key]->getPrereq();
+                    $course_coreq = $all_courses[$key]->getCoreq();
+                    $course_equiv = $all_courses[$key]->getEquiv();
+                    $course_excl = $all_courses[$key]->getExcl();
+                    $raw_defn[$j++] = new Course($course_codes, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
                 } else {
                     $raw_defn[$j++] = new Course($defn, null, $career, null, null, null, null, null);
                 }
