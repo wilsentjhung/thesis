@@ -24,12 +24,14 @@
 
     <!-- Connect to the PostgreSQL databases -->
     <?php include("inc/pgsql.php"); ?>
+    <!-- Courses initialisation -->
+    <?php include("inc/courses_init.php"); ?>
     <!-- Include neccessary helper functions -->
     <?php include("inc/helper_functions.php"); ?>
+    <!-- Include neccessary user functions -->
+    <?php include("inc/user_functions.php"); ?>
     <!-- User initialisation -->
-    <?php include("inc/init.php"); ?>
-    <!-- Include necessary functions for degree planning and progression checking -->
-    <?php include("inc/acad_functions.php"); ?>
+    <?php include("inc/user_init.php"); ?>
 </head>
 
 <body>

@@ -1,9 +1,11 @@
 <?php
 
 // Recommend courses based on popularity among other students with similar subjects
-// @return $recommendation - array of 100 recommended course
-function recommendPopularCourses() {
+// @param $user - current user
+// @return $recommendations - array of 100 recommended course
+function recommendPopularCourses($user) {
     include("inc/pgsql.php");
+    global $courses;
     $recommendations = array();
 
     $query = "SELECT code, title
@@ -38,11 +40,11 @@ function recommendPopularCourses() {
 // i.e. prerequisites, corequisites, equivalence requirements, exclusion requirements
 // @param $course_to_check - course code to check
 // @param $courses_passed - array of passed Course objects
+// @param $user - current user
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
-function checkEligibility($course_to_check, $courses_passed) {
-    global $user;
+function checkEligibility($course_to_check, $courses_passed, $user) {
     global $courses;
 
     if (!array_key_exists($course_to_check . $user->getProgram()->getCareer(), $courses)) {
@@ -50,11 +52,11 @@ function checkEligibility($course_to_check, $courses_passed) {
     }
 
     $test_outcome = -1;
-    $test_has_done_course = hasDoneCourse($course_to_check, $courses_passed);
-    $test_check_prereq = checkPrereq($course_to_check, $courses_passed);
-    $test_check_coreq = checkCoreq($course_to_check, $courses_passed);
-    $test_check_equiv = checkEquiv($course_to_check, $courses_passed);
-    $test_check_excl = checkExcl($course_to_check, $courses_passed);
+    $test_has_done_course = hasDoneCourse($course_to_check, $courses_passed, $user);
+    $test_check_prereq = checkPrereq($course_to_check, $courses_passed, $user);
+    $test_check_coreq = checkCoreq($course_to_check, $courses_passed, $user);
+    $test_check_equiv = checkEquiv($course_to_check, $courses_passed, $user);
+    $test_check_excl = checkExcl($course_to_check, $courses_passed, $user);
     // echo "{$test_has_done_course} - {$test_check_prereq} - {$test_check_coreq} -  {$test_check_equiv} - {$test_check_excl}";
 
     if ($test_has_done_course != -1) {
@@ -105,12 +107,12 @@ function checkEligibility($course_to_check, $courses_passed) {
 // Check whether the given course can be taken based on its prerequisites
 // @param $course_to_check - course code to check
 // @param $courses_passed - array of passed Course objects
+// @param $user - current user
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
 // TODO Degree-type checking (MARKETING_HONOURS etc.)
-function checkPrereq($course_to_check, $courses_passed) {
-    global $user;
+function checkPrereq($course_to_check, $courses_passed, $user) {
     global $courses;
     $prereq_evaluation = array();
     $career = $user->getProgram()->getCareer();
@@ -229,12 +231,12 @@ function checkPrereq($course_to_check, $courses_passed) {
 // Check whether the given course can be taken based on its corequisites
 // @param $course_to_check - course code to check
 // @param $courses_passed - array of passed Course objects
+// @param $user - current user
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
 // TODO Degree-type checking (MARKETING_HONOURS etc.)
-function checkCoreq($course_to_check, $courses_passed) {
-    global $user;
+function checkCoreq($course_to_check, $courses_passed, $user) {
     global $courses;
     $coreq_evaluation = array();
     $career = $user->getProgram()->getCareer();
@@ -353,11 +355,11 @@ function checkCoreq($course_to_check, $courses_passed) {
 // Check whether the given course can be taken based on its equivalence requirements
 // @param $course_to_check - course code to check
 // @param $courses_passed - array of passed Course objects
+// @param $user - current user
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
-function checkEquiv($course_to_check, $courses_passed) {
-    global $user;
+function checkEquiv($course_to_check, $courses_passed, $user) {
     global $courses;
     $equiv_evaluation = array();
     $key = $course_to_check . $user->getProgram()->getCareer();
@@ -397,11 +399,11 @@ function checkEquiv($course_to_check, $courses_passed) {
 // Check whether the given course can be taken based on its exclusion requirements
 // @param $course_to_check - course code to check
 // @param $courses_passed - array of passed Course objects
+// @param $user - current user
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
-function checkExcl($course_to_check, $courses_passed) {
-    global $user;
+function checkExcl($course_to_check, $courses_passed, $user) {
     global $courses;
     $excl_evaluation = array();
     $key = $course_to_check . $user->getProgram()->getCareer();
@@ -438,6 +440,22 @@ function checkExcl($course_to_check, $courses_passed) {
     return eval("return {$excl_evaluation_string};");
 }
 
+// Check whether the user has taken the given course previously
+// @param $course_to_check - course code to check
+// @param $courses_passed - array of passed Course objects
+// @param $user - current user
+// @return 1 if taken
+//         0 if not taken
+function hasDoneCourse($course_to_check, $courses_passed, $user) {
+    if (preg_match("/^([A-Z]{4}[0-9]{4})/", $course_to_check, $matches)) {
+        if (array_key_exists($matches[1], $courses_passed)) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 // Check whether the user meets the minimum UOC for the course
 function calculateUOCCourses($uoc_required, $pattern, $courses_passed) {
     $uoc_acquired = 0;
@@ -454,23 +472,6 @@ function calculateUOCCourses($uoc_required, $pattern, $courses_passed) {
     } else {
         return "false";
     }
-}
-
-// Check whether the user has taken the given course previously
-// @param $course_to_check - course code to check
-// @param $courses_passed - array of passed Course objects
-// @return 1 if taken
-//         0 if not taken
-function hasDoneCourse($course_to_check, $courses_passed) {
-    global $user;
-
-    if (preg_match("/^([A-Z]{4}[0-9]{4})/", $course_to_check, $matches)) {
-        if (array_key_exists($matches[1], $courses_passed)) {
-            return 1;
-        }
-    }
-
-    return 0;
 }
 
 // Get the title of the given course

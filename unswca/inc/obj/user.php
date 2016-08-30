@@ -258,8 +258,8 @@ class User {
         return $this->courses;
     }
 
-    public function setCourses($courses) {
-        $this->courses = $courses;
+    public function getAllCourses() {
+        return $this->all_courses;
     }
 
     // Get the requirements of a program or stream

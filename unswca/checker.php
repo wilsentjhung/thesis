@@ -2,10 +2,11 @@
 
 if (isset($_POST["course_to_check"]) && isset($_POST["courses_passed"])) {
     include("inc/session.php");
-    include("inc/helper_functions.php");
     include("inc/pgsql.php");
-    include("inc/reinit.php");
-    include("inc/acad_functions.php");
+    include("inc/courses_init.php");
+    include("inc/helper_functions.php");
+    include("inc/user_functions.php");
+    include("inc/user_reinit.php");
 
     $course_to_check = $_POST["course_to_check"];
     $courses_passed = $_POST["courses_passed"];
@@ -21,7 +22,7 @@ if (isset($_POST["course_to_check"]) && isset($_POST["courses_passed"])) {
         $courses_passed_obj[$code] = new CourseTaken($code, "", $title, $grade, $user->getProgram()->getCareer(), $uoc, "");
     }
 
-    $output = checkEligibility($course_to_check, $courses_passed_obj);
+    $output = checkEligibility($course_to_check, $courses_passed_obj, $user);
 
     echo json_encode($output);
 }
