@@ -176,6 +176,21 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
             } else {
                 $prereq_evaluation[$i] = "false";
             }
+        // Check individual prerequisite course with remaining UOC requirement
+        } else if (preg_match("/^REMAINING_([0-9]{1,3})_UOC$/", $prereq_conditions[$i], $matches)) {
+            if ($user->getProgram()->getUOC() - $user->getProgramUOC() <= $matches[1]) {
+                $prereq_evaluation[$i] = "true";
+            } else {
+                $prereq_evaluation[$i] = "false";
+            }
+        // Check individual prerequisite course with minimum UOC requirement in a specified degree
+        } else if (preg_match("/^([0-9]{1,3})_UOC_([0-9]{4})$/", $prereq_conditions[$i], $matches)) {
+            if ($user->getProgramUOC() >= $matches[1] && $user->getProgram() == $matches[2]) {
+                $prereq_evaluation[$i] = "true";
+            } else {
+                $prereq_evaluation[$i] = "false";
+            } 
+        
         // Check individual prerequisite course with minimum UNSW WAM requirement
         } else if (preg_match("/^([0-9]{1,3})_WAM$/", $prereq_conditions[$i], $matches)) {
             if ($user->getWAM() >= $matches[1]) {
@@ -183,9 +198,61 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
             } else {
                 $prereq_evaluation[$i] = "false";
             }
+        // Check individual prerequisite course with remaining Program WAM requirement
+        } else if (preg_match("/^PROGRAM_WAM_([0-9]{1,3})$/", $prereq_conditions[$i], $matches)) {
+            if ($user->getProgramWAM() >= $matches[1]) {
+                $prereq_evaluation[$i] = "true";
+            } else {
+                $prereq_evaluation[$i] = "false";
+            }
         // Check individual prerequisite course with program enrolment requirement
         } else if (preg_match("/^([0-9]{4})$/", $prereq_conditions[$i], $matches)) {
             if ($user->getProgram()->getCode() == $matches[1]) {
+                $prereq_evaluation[$i] = "true";
+            } else {
+                $prereq_evaluation[$i] = "false";
+            }
+        // Check individual prerequisite course with program enrolment requirement
+        } else if (preg_match("/^FACULTY_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
+            $user_faculty = pg_fetch_array(getSchoolAndFaculty($user->getProgram()->getCode()));
+            $faculty = preg_replace('_', ' ', $matches[1]);
+            if (preg_match($faculty, strtoupper($user_faculty['faculty']))) {
+                $prereq_evaluation[$i] = "true";
+            } else {
+                $prereq_evaluation[$i] = "false";
+            }
+        // Check individual prerequisite course with major enrolment requirement
+        } else if (preg_match("/^MAJOR_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
+            $user_major = $user->getProgram()->getTitle();
+            $major = preg_replace('_', ' ', $matches[1]);
+            if (preg_match($major, strtoupper($user_major))) {
+                $prereq_evaluation[$i] = "true";
+            } else {
+                $prereq_evaluation[$i] = "false";
+            }
+        // Check individual prerequisite course with honours/advanced enrolment requirement
+        } else if (preg_match("/^([A-Z]+)_MAJOR_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
+            $user_major = $user->getProgram()->getTitle();
+            $major = preg_replace('_', ' ', $matches[2]);
+            if (preg_match($major, strtoupper($user_major)) && preg_match($matches[1], strtoupper($user_major))) {
+                $prereq_evaluation[$i] = "true";
+            } else {
+                $prereq_evaluation[$i] = "false";
+            }
+        // Check individual prerequisite course with school enrolment requirement
+        } else if (preg_match("/^SCHOOL_([A-Z]+)$/", $prereq_conditions[$i], $matches)) {
+            $user_school = pg_fetch_array(getSchoolAndFaculty($user->getProgram()->getCode()));
+            if (preg_match($matches[1], strtoupper($user_school['school']))) {
+                $prereq_evaluation[$i] = "true";
+            } else {
+                $prereq_evaluation[$i] = "false";
+            }
+        // Check individual prerequisite course with career requirement
+        } else if (preg_match("/^CAREER_([A-Z]+)$/", $prereq_conditions[$i], $matches)) {
+            $career = $user->getProgram()->getCareer();
+            if (strcmp($matches[1], "POSTGRADUATE") == 0 && strcmp($career, "PG") == 0) {
+                $prereq_evaluation[$i] = "true";
+            } else if (strcmp($matches[1], "UNDERGRADUATE") == 0 && strcmp($career, "UG") == 0) {
                 $prereq_evaluation[$i] = "true";
             } else {
                 $prereq_evaluation[$i] = "false";
@@ -205,6 +272,9 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
             }
             $regex .= ")$/";
             $prereq_evaluation[$i] = calculateUOCCourses($uoc_required, $regex, $courses_passed);
+        // Check individual prerequisite course with minimum UOC requirement by specific area
+        } else if (preg_match("/^([0-9]{1,3})_UOC_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
+            $prereq_evaluation[$i] = subjectAreaUOC($matches[1], $matches[2], $courses_passed);
         // Check individual prerequisite course with school approval requirement
         } else if (strcmp($prereq_conditions[$i], "SCHOOL_APPROVAL") == 0) {
             $prereq_evaluation[$i] = "false";
@@ -472,6 +542,27 @@ function calculateUOCCourses($uoc_required, $pattern, $courses_passed) {
     } else {
         return "false";
     }
+}
+
+// Check whether the user meets the minimum UOC for the course from a specified faculty
+function subjectAreaUOC($uoc_required, $faculty, $courses_passed) {
+    $uoc_acquired = 0;
+    $keys = array_keys($courses_passed);
+    $faculty = preg_replace('_', ' ', $faculty);
+
+    foreach ($keys as $key) {
+        $course_faculty = getSchoolAndFaculty($key);
+        if (preg_match($faculty, strtoupper($course_faculty))) {
+            $uoc_acquired += $courses_passed[$key]->getUOC();
+        }
+    }
+
+    if ($uoc_acquired >= $uoc_required) {
+        return "true";
+    } else {
+        return "false";
+    }
+    
 }
 
 // Get the title of the given course
