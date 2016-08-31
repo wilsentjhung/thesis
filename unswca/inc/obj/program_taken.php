@@ -8,8 +8,9 @@ class ProgramTaken {
     var $school;
     var $faculty;
     var $requirements;
+    var $is_dual_award;
 
-    public function __construct($code, $title, $career, $uoc, $school, $faculty, $requirements) {
+    public function __construct($code, $title, $career, $uoc, $school, $faculty, $requirements, $is_dual_award) {
         $this->code = $code;
         $this->title = $title;
         $this->career = $career;
@@ -17,6 +18,7 @@ class ProgramTaken {
         $this->school = $school;
         $this->faculty = $faculty;
         $this->requirements = $requirements;
+        $this->is_dual_award = $is_dual_award;
     }
 
     public function getCode() {
@@ -45,6 +47,10 @@ class ProgramTaken {
 
     public function getRequirements() {
         return $this->requirements;
+    }
+
+    public function getIsDualAward() {
+        return $this->is_dual_award;
     }
 }
 

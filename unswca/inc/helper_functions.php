@@ -17,26 +17,48 @@ function canBeGenEd($faculty, $course) {
     }
 }
 
-// Get the school and faculty responsible for the given program or stream code
+// Get the school and faculty responsible for the given program, stream or course code
 function getSchoolAndFaculty($code) {
     include("pgsql.php");
     $result = NULL;
 
-    if (strlen($code) == 4) {
+    if (strlen($code) == 4) {           // Program code
         $query = "SELECT o.longname AS school, ofv.fac_name AS faculty
                   FROM program_records pr, orgunits o, org_faculty_view ofv
                   WHERE pr.code LIKE '$code' AND pr.acad_unit_responsible = o.id AND o.longname LIKE ofv.name
                   GROUP BY o.longname, ofv.fac_name";
         $result = pg_query($aims_db_connection, $query);
-    } else if (strlen($code) == 6) {
+    } else if (strlen($code) == 6) {    // Stream code
         $query = "SELECT o.longname AS school, ofv.fac_name AS faculty
                   FROM stream_records st, orgunits o, org_faculty_view ofv
                   WHERE LOWER(st.subject_area||st.strand||st.stream_type) LIKE LOWER('$code') AND st.acad_unit_responsible = o.id AND o.longname LIKE ofv.name
                   GROUP BY o.longname, ofv.fac_name";
         $result = pg_query($aims_db_connection, $query);
+    } else if (strlen($code) == 8) {    // Course code
+        $query = "SELECT o.longname AS school, ofv.fac_name AS faculty
+                  FROM course_records ct, orgunits o, org_faculty_view ofv
+                  WHERE LOWER(ct.subject_area || ct.catalogue_code) LIKE LOWER('$code') AND ct.responsible_acad_unit = o.id AND o.longname LIKE ofv.name
+                  GROUP BY o.longname, ofv.fac_name";
+        $result = pg_query($aims_db_connection, $query);
     }
 
     return $result;
+}
+
+function isDualAward($code) {
+    include("pgsql.php");
+
+    $query = "SELECT is_dual_award
+              FROM program_records
+              WHERE code LIKE '$code'";
+    $result = pg_query($aims_db_connection, $query);
+    $rows = pg_fetch_array($result);
+
+    if ($rows["is_dual_award"] == "t") {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 // Get the next term code given the term code
