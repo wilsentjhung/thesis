@@ -26,31 +26,30 @@ class User {
         $family_name = $rows["family_name"];
 
         // Construct ProgramTaken object
-        $result = $this->getTypeInfo($zid, "program");
+        $result = $this->getProgramOrStreamInfo($zid, "program");
         $rows = pg_fetch_array($result);
         $code = str_ireplace(" ", "", $rows["code"]);
         $title = $rows["title"];
         $career = str_ireplace(" ", "", $rows["career"]);
         $pr_uoc = str_ireplace(" ", "", $rows["uoc"]);
-
         // Check the school and faculty responsible for the program
         $school_faculty = pg_fetch_array(getSchoolAndFaculty($code));
         $school = $school_faculty["school"];
         $faculty = $school_faculty["faculty"];
         $requirements = $this->getRequirements($code, $career, $all_courses);
+        $is_dual_award = isDualAward($code);
 
-        $program = new ProgramTaken($code, $title, $career, $pr_uoc, $school, $faculty, $requirements);
+        $program = new ProgramTaken($code, $title, $career, $pr_uoc, $school, $faculty, $requirements, $is_dual_award);
 
         // Construct StreamTaken object
         $i = 0;
         $streams = array();
-        $result = $this->getTypeInfo($zid, "stream");
+        $result = $this->getProgramOrStreamInfo($zid, "stream");
         while ($rows = pg_fetch_array($result)) {
             $code = str_ireplace(" ", "", $rows["code"]);
             $title = $rows["title"];
             $career = str_ireplace(" ", "", $rows["career"]);
             $st_uoc = str_ireplace(" ", "", $rows["uoc"]);
-
             // Check the school and faculty responsible for the stream
             $school_faculty = pg_fetch_array(getSchoolAndFaculty($code));
             $school = $school_faculty["school"];
@@ -349,7 +348,7 @@ class User {
     // @param $zid - zID
     // @param $type - either "program" or "stream"
     // @return $result - DB result (require pg_fetch_array)
-    private function getTypeInfo($zid, $type) {
+    private function getProgramOrStreamInfo($zid, $type) {
         include("inc/pgsql.php");
         $result = NULL;
 

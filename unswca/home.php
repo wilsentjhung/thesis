@@ -105,6 +105,8 @@
     <script src="inc/navbar.js"></script>
     <!-- Search box event handler -->
     <script src="inc/search.js"></script>
+    <!-- Pathwayys event handler -->
+    <script src="inc/pathways.js"></script>
 
     <!-- Bootstrap core JavaScript -->
     <!-- Placed at the end of the document so the pages load faster -->

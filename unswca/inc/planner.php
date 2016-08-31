@@ -20,17 +20,17 @@ foreach ($user->getCourses() as $course) {
         if ($j > 0) {
             echo "</div>";
         }
-        echo "<div id='term-{$i}' class='term btn-group-vertical' role='group'><h5>{$course->getTerm()}</h5>";
+        echo "<div id='term-{$i}' class='term btn-group-vertical' role='group' style='background-color: #CCCCCC; border: 2px solid #CCCCCC;'><h5>{$course->getTerm()}</h5>";
         $k = $i;
         $l = 0;
         $m = 0;
         $i++;
     }
     if ($course->getOutcome() == 2) {   // Failed course
-        echo "<button type='button' id='failed-unit-{$k}-{$l}' class='btn btn-danger' draggable='false' style='border-radius: 0px; width: 200px;'>{$course->getCode()}</button>";
+        echo "<button type='button' id='failed-unit-{$k}-{$l}' class='btn btn-danger' data-toggle='popover' data-trigger='focus' title='{$course->getCode()} - {$course->getTitle()}' data-content='TEST' draggable='false' style='border-radius: 0px; width: 200px;'>{$course->getCode()}</button>";
         $l++;
     } else {
-        echo "<button type='button' id='passed-unit-{$k}-{$m}' class='btn btn-success' draggable='false' style='border-radius: 0px; width: 200px;'>{$course->getCode()}</button>";
+        echo "<button type='button' id='passed-unit-{$k}-{$m}' class='btn btn-success' data-toggle='popover' data-trigger='focus' title='{$course->getCode()} - {$course->getTitle()}' data-content='TEST' draggable='false' style='border-radius: 0px; width: 200px;'>{$course->getCode()}</button>";
         $m++;
     }
     $prev = $course->getTerm();
@@ -45,7 +45,7 @@ while ($j < $user->getRemainingUOC()) {
     if (substr($next_term, 2, 1) == "s") {
         $j += 24;
     }
-    echo "<div id='term-{$i}' class='term btn-group-vertical' role='group' ondrop='drop(event)' ondragover='allowDrop(event)'><h5>{$next_term}</h5></div>";
+    echo "<div id='term-{$i}' class='term btn-group-vertical' role='group' ondrop='drop(event)' ondragover='allowDrop(event)' style='background-color: lightblue; border: 2px solid lightblue;'><h5>{$next_term}</h5></div>";
     $i++;
 }
 $num_terms = $i;
@@ -71,7 +71,7 @@ foreach ($user->getRemainingCCRequirements() as $raw_defn) {
     echo "<div id='requirement-{$i}' class='requirement btn-group' role='group' ondrop='drop(event)' ondragover='allowDrop(event)' style='min-height: 20px;'>";
     $j = 0;
     foreach ($raw_defn->getRawDefn() as $defn) {
-        echo "<button type='button' id='cc-unit-{$i}-{$j}-{$defn->getUOC()}-{$raw_defn->getMax()}' class='btn btn-primary' draggable='true' ondragstart='drag(event)' style='border-radius: 0px; width: 200px;'>{$defn->getCode()}</button>";
+        echo "<button type='button' id='cc-unit-{$i}-{$j}-{$defn->getUOC()}-{$raw_defn->getMax()}' class='btn btn-primary' data-toggle='popover' title='TEST' data-content='TEST' draggable='true' ondragstart='drag(event)' style='border-radius: 0px; width: 200px;'>{$defn->getCode()}</button>";
         $j++;
     }
     echo "</div></div></div>";
@@ -105,9 +105,14 @@ echo "</div></div>";
 ?>
 
 <script>
-
+$(function () {
+    $("[data-toggle='popover']").popover()
+})
+$(".popover-dismiss").popover({
+  trigger: 'focus'
+})
 // ================================================================================================
-// Event handler for planner.php ==================================================================
+// Planner event handler ==========================================================================
 // ================================================================================================
 var numTerms = <?php echo json_encode($num_terms); ?>;
 var numRequirements = <?php echo json_encode($num_requirements); ?>;

@@ -3,7 +3,7 @@
 // ================================================================================================
 // Show basic information =========================================================================
 // ================================================================================================
-echo "<h1 class='page-header'>{$user->getGivenName()} {$user->getFamilyName()} (z{$user->getZID()})</h1>";
+echo "<h1 class='page-header'>{$user->getGivenName()} {$user->getFamilyName()} <small>z{$user->getZID()}</small></h1>";
 echo "<h2>Basic Information</h2>";
 
 // Show program information =======================================================================
