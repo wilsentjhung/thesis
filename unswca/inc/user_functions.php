@@ -40,11 +40,12 @@ function recommendPopularCourses($user) {
 // i.e. prerequisites, corequisites, equivalence requirements, exclusion requirements
 // @param $course_to_check - course code to check
 // @param $courses_passed - array of passed Course objects
+// @param $current_courses - array of Course objects for the term that the checked course is in
 // @param $user - current user
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
-function checkEligibility($course_to_check, $courses_passed, $user) {
+function checkEligibility($course_to_check, $courses_passed, $current_courses, $user) {
     global $courses;
 
     if (!array_key_exists($course_to_check . $user->getProgram()->getCareer(), $courses)) {
@@ -54,9 +55,9 @@ function checkEligibility($course_to_check, $courses_passed, $user) {
     $test_outcome = -1;
     $test_has_done_course = hasDoneCourse($course_to_check, $courses_passed, $user);
     $test_check_prereq = checkPrereq($course_to_check, $courses_passed, $user);
-    $test_check_coreq = checkCoreq($course_to_check, $courses_passed, $user);
-    $test_check_equiv = checkEquiv($course_to_check, $courses_passed, $user);
-    $test_check_excl = checkExcl($course_to_check, $courses_passed, $user);
+    $test_check_coreq = checkCoreq($course_to_check, array_merge($courses_passed, $current_courses), $user);
+    $test_check_equiv = checkEquiv($course_to_check, array_merge($courses_passed, $current_courses), $user);
+    $test_check_excl = checkExcl($course_to_check, array_merge($courses_passed, $current_courses), $user);
     // echo "{$test_has_done_course} - {$test_check_prereq} - {$test_check_coreq} -  {$test_check_equiv} - {$test_check_excl}";
 
     if ($test_has_done_course != -1) {
@@ -178,7 +179,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
             }
         // Check individual prerequisite course with remaining UOC requirement
         } else if (preg_match("/^REMAINING_([0-9]{1,3})_UOC$/", $prereq_conditions[$i], $matches)) {
-            if ($user->getProgram()->getUOC() - $user->getProgramUOC() <= $matches[1]) {
+            if ($user->getRemainingUOC() <= $matches[1]) {
                 $prereq_evaluation[$i] = "true";
             } else {
                 $prereq_evaluation[$i] = "false";

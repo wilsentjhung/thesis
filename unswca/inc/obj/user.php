@@ -13,10 +13,10 @@ class User {
 
     public function __construct($zid, $all_courses) {
         include("inc/pgsql.php");
-        include("program_taken.php");
-        include("stream_taken.php");
-        include("course_taken.php");
-        include("requirement.php");
+        include_once("program_taken.php");
+        include_once("stream_taken.php");
+        include_once("course_taken.php");
+        include_once("requirement.php");
 
         $query = "SELECT * FROM people WHERE id = $zid";
         $result = pg_query($sims_db_connection, $query);
