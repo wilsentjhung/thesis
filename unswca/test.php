@@ -12,9 +12,16 @@ $query = "SELECT DISTINCT student_id
 $result = pg_query($sims_db_connection, $query);
 
 while ($rows = pg_fetch_array($result)) {
-	echo $rows["student_id"];
+	$zid = $rows["student_id"];
+	echo "$zid";
+	if (strcmp($zid, "2138285") == 0 || strcmp($zid, "2221228") == 0) {
+		continue;
+	}
 	//going through each student
-	$user = new User($rows["student_id"], $courses);
+	$user = new User($zid, $courses);
+	
+	$career = $user->getProgram()->getCareer();
+	echo " $career";
 
 	$i = 0;
 	$courses_passed = array();

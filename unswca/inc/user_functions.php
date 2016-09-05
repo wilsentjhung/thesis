@@ -45,11 +45,12 @@ function recommendPopularCourses($user) {
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
+//         404 if course not found
 function checkEligibility($course_to_check, $courses_passed, $current_courses, $user) {
     global $courses;
 
     if (!array_key_exists($course_to_check . $user->getProgram()->getCareer(), $courses)) {
-        return;
+        return 404;
     }
 
     $test_outcome = -1;
@@ -101,7 +102,9 @@ function checkEligibility($course_to_check, $courses_passed, $current_courses, $
     }
 
     $test_outcome = eval("return ((~({$test_has_done_course}))&{$test_check_prereq}&{$test_check_coreq}&(~({$test_check_equiv}))&(~({$test_check_excl})));");
-
+    if ($test_outcome != 0 && $test_outcome != 1 && $test_outcome != 404) {
+        $test_outcome = -1;
+    }
     return $test_outcome;
 }
 

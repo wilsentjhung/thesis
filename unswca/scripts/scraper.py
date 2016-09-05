@@ -29,6 +29,7 @@ exclSentence = re.compile(r"<p>.*?([Ee]xclu.*?:.*?)<\/p>")
 exclOnlySentence = re.compile(r".*?([Ee]xclu.*?:.*)")
 uocPattern = re.compile(r"<p><strong>Units of Credit:<\/strong>.*?([0-9]+)<\/p>")
 titlePattern = re.compile(r"<title>.*?-\s*(.*?)\s*- [A-Z]{4}[0-9]{4}<\/title>",  re.DOTALL)
+subject_area_sentence = re.compile(r"<u>Subject Areas?<\/u>: <i>(.*?)<\/i>")
 
 f = open("pre_reqs.sql", "w")
 f.write("DROP TABLE IF EXISTS pre_reqs;\n")
@@ -45,6 +46,11 @@ h.write("CREATE TABLE equivalence (course_code text, title text, uoc integer, ca
 i = open("exclusion.sql", "w")
 i.write("DROP TABLE IF EXISTS exclusion;\n")
 i.write("CREATE TABLE exclusion (course_code text, title text, uoc integer, career text, exclusion_conditions text, norm_exclusion_conditions text);\n")
+
+j = open("subject_area.sql", "w")
+j.write("DROP TABLE IF EXISTS subject_area;\n")
+j.write("CREATE TABLE subject_area (course_code text, title text, uoc integer, career text, area text);\n")
+
 
 ugUrl = "http://www.handbook.unsw.edu.au/vbook2016/brCoursesByAtoZ.jsp?StudyLevel=Undergraduate&descr=All"
 ugHtml = urllib2.urlopen(ugUrl).read()
@@ -83,6 +89,7 @@ for hc in subjectCode:
 	exclusionCondition = ""
 	uoc = ""
 	title = ""
+	subject_area = ""
 
 	try:
 		codeInUrl = re.findall(codePattern, url2)
@@ -93,6 +100,7 @@ for hc in subjectCode:
 		courseCode2 = re.findall(coreqSentence, html2)
 		courseCode3 = re.findall(equiSentence, html2)
 		courseCode4 = re.findall(exclSentence, html2)
+		subject_area_matches = re.findall(subject_area_sentence, html2)
 		uoc = int(uocPattern.search(html2).group(1))
 		title = titlePattern.search(html2).group(1)
 		title = re.sub(r"\'", "\'\'", title, flags=re.IGNORECASE)
@@ -103,6 +111,9 @@ for hc in subjectCode:
 
 		if courseCode4:
 			exclusion = exclOnlySentence.search(courseCode4[0]).group(0)
+
+		if subject_area_matches:
+			subject_area = subject_area_matches[0]
 
 		if courseCode:
 			prereq = prereqOnlySentence.search(courseCode[0]).group(1)
@@ -173,6 +184,8 @@ for hc in subjectCode:
 
 
 			#manual
+			if (codeInUrl[0] == "ACCT1501"):
+				prereq = ""
 			if (codeInUrl[0] == "ACCT2507"):
 				prereq = "(ACCT1511{80})"
 			elif (codeInUrl[0] == "ACCT4794" or codeInUrl[0] == "ACCT4809" or codeInUrl[0] == "ACCT4851" or
@@ -188,11 +201,13 @@ for hc in subjectCode:
 				prereq = "(MATH1151 && (3586 || 3587 || 3588 || 3589 || 3155 || 3154 || 4737))"
 			elif (codeInUrl[0] == "ACTL2102"):
 				prereq = "((ACTL2131 || MATH2901) && (3154 || 3155 || 3586 || 3587 || 3588 || 3589 || 4737))"
+			elif (codeInUrl[0] == "ACTL3142"):
+				prereq = "(ACTL2131 && ACTL2111 && MAJOR_ACTUARIAL)"
 			elif (codeInUrl[0] == "ACTL3162"):
 				prereq = "(ACTL2102 || (MATH2901 && (MATHR13986 || MATHR13523 || MATHR13564 || MATHR13956 || MATHR13589 || MATHR13761 || MATHR13946 || MATHR13949 || MATHR13998)))"
 			elif (codeInUrl[0] == "ACTL4000" or codeInUrl[0] == "ACTL4003"):
 				#!!!
-				prereq = "(ACTUARIAL_HONOURS)"
+				prereq = "(HONOURS_MAJOR_ACTUARIAL)"
 			elif (codeInUrl[0] == "ACTL4002"):
 				#changed prereq and coreq
 				prereq = "(ACTL4001)"
@@ -462,7 +477,7 @@ for hc in subjectCode:
 				#also a coreq
 				prereq = "(FINS3775 || FINS4775)"
 			elif (codeInUrl[0] == "FINS4781"):
-				prereq = "(FINANCE_HONOURS)"
+				prereq = "(HONOURS_MAJOR_FINANCE)"
 			elif (codeInUrl[0] == "FINS5511"):
 				#also a coreq
 				prereq = "(ACCT5930 && ECON5103)"
@@ -1235,6 +1250,13 @@ for hc in subjectCode:
 			#print "went here"
 			i.write("INSERT INTO exclusion (course_code, title, uoc, career, exclusion_conditions, norm_exclusion_conditions) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM exclusion WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, codeInUrl[0], career))
 
+
+		if subject_area:
+			subject_area = re.sub(r"\'", "\'\'", subject_area, flags=re.IGNORECASE)
+
+			j.write("INSERT INTO subject_area (course_code, title, uoc, career, area) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM subject_area WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, subject_area, codeInUrl[0], career))
+		else:
+			j.write("INSERT INTO subject_area (course_code, title, uoc, career, area) SELECT \'%s\', \'%s\', \'%d\', \'%s\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM subject_area WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], title, uoc, career, codeInUrl[0], career))
 
 	except:
 		print title
