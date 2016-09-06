@@ -21,7 +21,8 @@ while ($rows = pg_fetch_array($result)) {
 	$user = new User($zid, $courses);
 	
 	$career = $user->getProgram()->getCareer();
-	echo " $career";
+	//$psuedocareer = $user->getProgram()->getPsuedoCareer();
+	echo " $career  ";
 
 	$i = 0;
 	$courses_passed = array();
@@ -54,11 +55,18 @@ function check_details ($user) {
 	$current_passed_courses = array();
 	$current_planned_courses = array();
 	$current_term = $start_term;
+	$current_course_counter = 0;
 	while ($current_term != $end_term) {
-		$current_passed_courses = array_merge($current_passed_courses, $current_planned_courses);
+		foreach ($current_planned_courses as $passed_course) {
+			if ($passed_course->getOutcome() == 0 || $passed_course->getOutcome() == 1) {
+				$current_passed_courses[count($current_passed_courses)] = $passed_course;
+			}
+		}
+		//$current_passed_courses = array_merge($current_passed_courses, $current_planned_courses);
 		$current_planned_courses = array();
-		while (strcmp($current_term, $user->getCourses()[count($current_passed_courses) + count($current_planned_courses)]->getTerm()) == 0) {
-			$current_planned_courses[count($current_planned_courses)] = $user->getCourses()[count($current_passed_courses) + count($current_planned_courses)];
+		while ($current_course_counter < count($user->getCourses()) && strcmp($current_term, $user->getCourses()[$current_course_counter]->getTerm()) == 0) {
+			$current_planned_courses[count($current_planned_courses)] = $user->getCourses()[$current_course_counter];
+			$current_course_counter++;
 		}
 
 		//check the eligibility
@@ -75,22 +83,21 @@ function check_details ($user) {
 			echo "&nbsp;  &nbsp; $term  &nbsp;  $code  &nbsp;  $outcome<br>";
 		}
 
-		$current_term = $user->getCourses()[count($current_passed_courses) + count($current_planned_courses)]->getTerm();
+		$current_term = $user->getCourses()[$current_course_counter]->getTerm();
 
 	}
 
 	//last term
-	$current_passed_courses = array_merge($current_passed_courses, $current_planned_courses);
+	foreach ($current_planned_courses as $passed_course) {
+		if ($passed_course->getOutcome() == 0 || $passed_course->getOutcome() == 1) {
+			$current_passed_courses[count($current_passed_courses)] = $passed_course;
+		}
+	}
+	//$current_passed_courses = array_merge($current_passed_courses, $current_planned_courses);
 	$current_planned_courses = array();
-		/*echo "<br>";
-		echo count($current_passed_courses);
-		echo count($current_planned_courses);
-		echo (count($current_passed_courses) + count($current_planned_courses));
-		echo count($user->getCourses());
-		echo "<br>";
-		echo $user->getCourses()[0]->getTerm();*/
-	while (count($current_passed_courses) + count($current_planned_courses) < count($user->getCourses()) && strcmp($current_term, $user->getCourses()[count($current_passed_courses) + count($current_planned_courses)]->getTerm()) == 0) {
-		$current_planned_courses[count($current_planned_courses)] = $user->getCourses()[count($current_passed_courses) + count($current_planned_courses)];
+	while ($current_course_counter < count($user->getCourses()) && strcmp($current_term, $user->getCourses()[$current_course_counter]->getTerm()) == 0) {
+		$current_planned_courses[count($current_planned_courses)] = $user->getCourses()[$current_course_counter];
+		$current_course_counter++;
 	}
 
 	//check the eligibility
@@ -104,8 +111,8 @@ function check_details ($user) {
 		} else {
 			$outcome = checkEligibility($code, $current_passed_courses, array(), $user);
 		}
-		
 		echo "&nbsp;  &nbsp; $term  &nbsp;  $code  &nbsp;  $outcome<br>";
 	}
+
 
 }

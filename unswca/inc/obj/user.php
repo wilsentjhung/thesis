@@ -82,7 +82,7 @@ class User {
 
             // Calculate completed UOC and UNSW WAM
             // UNSW WAM = sigma($mark*$uoc)/sigma($uoc)
-            if ($course->getGrade() == "SY") {          // i.e. COMP4930 (Thesis Part A)
+            if ($course->getGrade() == "SY" || $course->getGrade() == "RS") {          // i.e. COMP4930 (Thesis Part A)
                 $uoc += $course->getUOC();
             } else if ($course->getOutcome() == 1) {    // Passed course
                 $numerator += $course->getMark()*$course->getUOC();
@@ -91,12 +91,15 @@ class User {
             } else if ($course->getOutcome() == 2) {    // Failed course
                 $numerator += $course->getMark()*$course->getUOC();
                 $denominator += $course->getUOC();
+            
             } else if ($course->getOutcome() == 3) {    // i.e. exchange, research course
                 $uoc += $course->getUOC();
+            } else if ($course->getOutcome() == 4) {    // Dropped course
+
             }
         }
 
-        if ($uoc == 0) {
+        if ($uoc == 0 || $denominator == 0) {
             $wam = 0;
         } else {
             $wam = $numerator/$denominator;
@@ -402,3 +405,4 @@ class User {
 }
 
 ?>
+

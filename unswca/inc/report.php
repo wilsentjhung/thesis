@@ -17,6 +17,8 @@ foreach ($user->getCourses() as $course) {
         echo "<tbody><tr class='danger'>"; // Failed course
     } else if ($course->getOutcome() == 3) {
         echo "<tbody><tr class='info'>";    // Not applicable course
+    } else if ($course->getOutcome() == 4) {
+        echo "<tbody><tr class='warning'>";    // Dropped course
     }
     echo "<td class='col-sm-1'>" . $i++ . "</td>";
     echo "<td>{$course->getCode()}</td>";

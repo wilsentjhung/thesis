@@ -120,7 +120,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
     global $courses;
     $prereq_evaluation = array();
     $career = $user->getProgram()->getCareer();
-    $key = $course_to_check . $user->getProgram()->getCareer();
+    $key = $course_to_check . $career;
     $prereq_conditions = explode(" ", $courses[$key]->getPrereq());
 
     // Check if the course to check has no prerequisite
@@ -219,7 +219,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
         // Check individual prerequisite course with program enrolment requirement
         } else if (preg_match("/^FACULTY_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
             $user_faculty = pg_fetch_array(getSchoolAndFaculty($user->getProgram()->getCode()));
-            $faculty = preg_replace('_', ' ', $matches[1]);
+            $faculty = str_replace('_', ' ', $matches[1]);
             if (preg_match($faculty, strtoupper($user_faculty['faculty']))) {
                 $prereq_evaluation[$i] = "true";
             } else {
@@ -228,7 +228,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
         // Check individual prerequisite course with major enrolment requirement
         } else if (preg_match("/^MAJOR_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
             $user_major = $user->getProgram()->getTitle();
-            $major = preg_replace('_', ' ', $matches[1]);
+            $major = str_replace('_', ' ', $matches[1]);
             if (preg_match($major, strtoupper($user_major))) {
                 $prereq_evaluation[$i] = "true";
             } else {
@@ -237,7 +237,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
         // Check individual prerequisite course with honours/advanced enrolment requirement
         } else if (preg_match("/^([A-Z]+)_MAJOR_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
             $user_major = $user->getProgram()->getTitle();
-            $major = preg_replace('_', ' ', $matches[2]);
+            $major = str_replace('_', ' ', $matches[2]);
             if (preg_match($major, strtoupper($user_major)) && preg_match($matches[1], strtoupper($user_major))) {
                 $prereq_evaluation[$i] = "true";
             } else {
@@ -314,7 +314,7 @@ function checkCoreq($course_to_check, $courses_passed, $user) {
     global $courses;
     $coreq_evaluation = array();
     $career = $user->getProgram()->getCareer();
-    $key = $course_to_check . $user->getProgram()->getCareer();
+    $key = $course_to_check . $career;
     $coreq_conditions = explode(" ", $courses[$key]->getCoreq());
 
     // Check if the course to check has no corequisite
@@ -552,7 +552,7 @@ function calculateUOCCourses($uoc_required, $pattern, $courses_passed) {
 function subjectAreaUOC($uoc_required, $faculty, $courses_passed) {
     $uoc_acquired = 0;
     $keys = array_keys($courses_passed);
-    $faculty = preg_replace('_', ' ', $faculty);
+    $faculty = str_replace('_', ' ', $faculty);
 
     foreach ($keys as $key) {
         $course_faculty = getSchoolAndFaculty($key);

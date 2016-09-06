@@ -63,10 +63,12 @@ class CourseTaken {
     private function checkCourseOutcome($mark, $grade) {
         if ($mark == "" && $grade == "") {
             return 0; // Active course
-        } else if ((is_numeric($mark) && $mark >= 50 && $grade != "UF") || $grade == "PC" || $grade == "SY") {
+        } else if ((is_numeric($mark) && $mark >= 50 && $grade != "UF") || $grade == "PC" || $grade == "SY" || $grade == "RS") {
             return 1; // Passed course
         } else if ((is_numeric($mark) && $mark < 50 && $grade != "PC") || $grade == "FL" || $grade == "AF" || $grade == "UF") {
-            return 2; // Failed course
+            return 2; // Failed course 
+        } else if ($grade == "NF" || $grade == "NC" || $grade == "EM" || $grade == "AW" || $grade == "PW") {
+            return 4; //dropped course
         } else {
             return 3; // Not applicable course
         }
