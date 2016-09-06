@@ -50,7 +50,11 @@ function checkEligibility($course_to_check, $courses_passed, $current_courses, $
     global $courses;
 
     if (!array_key_exists($course_to_check . $user->getProgram()->getCareer(), $courses)) {
-        return 404;
+        if (strcmp($user->getProgram()->getCareer(), "RS") == 0 && (array_key_exists($course_to_check . "PG", $courses))) {
+
+        } else {
+            return 404;
+        }
     }
 
     $test_outcome = -1;
@@ -101,6 +105,7 @@ function checkEligibility($course_to_check, $courses_passed, $current_courses, $
         }
     }
 
+    //echo "return ((~({$test_has_done_course}))&{$test_check_prereq}&{$test_check_coreq}&(~({$test_check_equiv}))&(~({$test_check_excl})));";
     $test_outcome = eval("return ((~({$test_has_done_course}))&{$test_check_prereq}&{$test_check_coreq}&(~({$test_check_equiv}))&(~({$test_check_excl})));");
     if ($test_outcome != 0 && $test_outcome != 1 && $test_outcome != 404) {
         $test_outcome = -1;
@@ -120,6 +125,13 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
     global $courses;
     $prereq_evaluation = array();
     $career = $user->getProgram()->getCareer();
+    if (!array_key_exists($course_to_check . $career, $courses)) {
+        if (strcmp($user->getProgram()->getCareer(), "RS") == 0 && (array_key_exists($course_to_check . "PG", $courses))) {
+            $career = "PG";
+        } else {
+            return 404;
+        }
+    }
     $key = $course_to_check . $career;
     $prereq_conditions = explode(" ", $courses[$key]->getPrereq());
 
@@ -130,11 +142,13 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
 
     for ($i = 0; $i < count($prereq_conditions); $i++) {
         // Check individual prerequisite course
+        
         if (preg_match("/^[A-Z]{4}[0-9]{4}$/", $prereq_conditions[$i])) {
             $prereq_evaluation[$i] = "false";
 
             if (array_key_exists($prereq_conditions[$i], $courses_passed)) {
                 $prereq_evaluation[$i] = "true";
+
             } else {
                 if (array_key_exists($prereq_conditions[$i] . $career, $courses)) {
                     foreach ($courses_passed as $course_passed) {
@@ -220,7 +234,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
         } else if (preg_match("/^FACULTY_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
             $user_faculty = pg_fetch_array(getSchoolAndFaculty($user->getProgram()->getCode()));
             $faculty = str_replace('_', ' ', $matches[1]);
-            if (preg_match($faculty, strtoupper($user_faculty['faculty']))) {
+            if (preg_match("/$faculty/", strtoupper($user_faculty['faculty']))) {
                 $prereq_evaluation[$i] = "true";
             } else {
                 $prereq_evaluation[$i] = "false";
@@ -229,7 +243,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
         } else if (preg_match("/^MAJOR_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
             $user_major = $user->getProgram()->getTitle();
             $major = str_replace('_', ' ', $matches[1]);
-            if (preg_match($major, strtoupper($user_major))) {
+            if (preg_match("/$major/", strtoupper($user_major))) {
                 $prereq_evaluation[$i] = "true";
             } else {
                 $prereq_evaluation[$i] = "false";
@@ -238,7 +252,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
         } else if (preg_match("/^([A-Z]+)_MAJOR_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
             $user_major = $user->getProgram()->getTitle();
             $major = str_replace('_', ' ', $matches[2]);
-            if (preg_match($major, strtoupper($user_major)) && preg_match($matches[1], strtoupper($user_major))) {
+            if (preg_match("/$major/", strtoupper($user_major)) && preg_match("/$matches[1]/", strtoupper($user_major))) {
                 $prereq_evaluation[$i] = "true";
             } else {
                 $prereq_evaluation[$i] = "false";
@@ -246,7 +260,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
         // Check individual prerequisite course with school enrolment requirement
         } else if (preg_match("/^SCHOOL_([A-Z]+)$/", $prereq_conditions[$i], $matches)) {
             $user_school = pg_fetch_array(getSchoolAndFaculty($user->getProgram()->getCode()));
-            if (preg_match($matches[1], strtoupper($user_school['school']))) {
+            if (preg_match("/$matches[1]/", strtoupper($user_school['school']))) {
                 $prereq_evaluation[$i] = "true";
             } else {
                 $prereq_evaluation[$i] = "false";
@@ -294,7 +308,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
     $prereq_evaluation_string = implode(" ", $prereq_evaluation);
     $prereq_evaluation_string = str_ireplace("||", "|", $prereq_evaluation_string);
     $prereq_evaluation_string = str_ireplace("&&", "&", $prereq_evaluation_string);
-    // echo $prereq_evaluation_string;
+    //echo $prereq_evaluation_string;
     if (preg_match("/(true|false)\s*\(/i", $prereq_evaluation_string)) {
         return -1;
     }
@@ -314,6 +328,13 @@ function checkCoreq($course_to_check, $courses_passed, $user) {
     global $courses;
     $coreq_evaluation = array();
     $career = $user->getProgram()->getCareer();
+    if (!array_key_exists($course_to_check . $career, $courses)) {
+        if (strcmp($user->getProgram()->getCareer(), "RS") == 0 && (array_key_exists($course_to_check . "PG", $courses))) {
+            $career = "PG";
+        } else {
+            return 404;
+        }
+    }
     $key = $course_to_check . $career;
     $coreq_conditions = explode(" ", $courses[$key]->getCoreq());
 
@@ -436,7 +457,15 @@ function checkCoreq($course_to_check, $courses_passed, $user) {
 function checkEquiv($course_to_check, $courses_passed, $user) {
     global $courses;
     $equiv_evaluation = array();
-    $key = $course_to_check . $user->getProgram()->getCareer();
+    $career = $user->getProgram()->getCareer();
+    if (!array_key_exists($course_to_check . $career, $courses)) {
+        if (strcmp($user->getProgram()->getCareer(), "RS") == 0 && (array_key_exists($course_to_check . "PG", $courses))) {
+            $career = "PG";
+        } else {
+            return 404;
+        }
+    }
+    $key = $course_to_check . $career;
     $equiv_conditions = explode(" ", $courses[$key]->getEquiv());
 
     // Check if the course to check has no equivalence
@@ -480,7 +509,15 @@ function checkEquiv($course_to_check, $courses_passed, $user) {
 function checkExcl($course_to_check, $courses_passed, $user) {
     global $courses;
     $excl_evaluation = array();
-    $key = $course_to_check . $user->getProgram()->getCareer();
+    $career = $user->getProgram()->getCareer();
+    if (!array_key_exists($course_to_check . $career, $courses)) {
+        if (strcmp($user->getProgram()->getCareer(), "RS") == 0 && (array_key_exists($course_to_check . "PG", $courses))) {
+            $career = "PG";
+        } else {
+            return 404;
+        }
+    }
+    $key = $course_to_check . $career;
     $excl_conditions = explode(" ", $courses[$key]->getExcl());
 
     // Check if the course to check has no exclusion
@@ -555,8 +592,8 @@ function subjectAreaUOC($uoc_required, $faculty, $courses_passed) {
     $faculty = str_replace('_', ' ', $faculty);
 
     foreach ($keys as $key) {
-        $course_faculty = getSchoolAndFaculty($key);
-        if (preg_match($faculty, strtoupper($course_faculty))) {
+        $course_faculty = pg_fetch_array(getSchoolAndFaculty($key));
+        if (preg_match("/$faculty/", strtoupper($course_faculty['faculty']))) {
             $uoc_acquired += $courses_passed[$key]->getUOC();
         }
     }

@@ -13,6 +13,7 @@ $result = pg_query($sims_db_connection, $query);
 
 while ($rows = pg_fetch_array($result)) {
 	$zid = $rows["student_id"];
+//$zid = 1098725;
 	echo "$zid";
 	if (strcmp($zid, "2138285") == 0 || strcmp($zid, "2221228") == 0) {
 		continue;
@@ -56,16 +57,18 @@ function check_details ($user) {
 	$current_planned_courses = array();
 	$current_term = $start_term;
 	$current_course_counter = 0;
-	while ($current_term != $end_term) {
+	while ($current_course_counter < count($user->getCourses())) {
+		$current_term = $user->getCourses()[$current_course_counter]->getTerm();
 		foreach ($current_planned_courses as $passed_course) {
+
 			if ($passed_course->getOutcome() == 0 || $passed_course->getOutcome() == 1) {
-				$current_passed_courses[count($current_passed_courses)] = $passed_course;
+				$current_passed_courses[$passed_course->getCode()] = $passed_course;
 			}
 		}
 		//$current_passed_courses = array_merge($current_passed_courses, $current_planned_courses);
 		$current_planned_courses = array();
 		while ($current_course_counter < count($user->getCourses()) && strcmp($current_term, $user->getCourses()[$current_course_counter]->getTerm()) == 0) {
-			$current_planned_courses[count($current_planned_courses)] = $user->getCourses()[$current_course_counter];
+			$current_planned_courses[$user->getCourses()[$current_course_counter]->getCode()] = $user->getCourses()[$current_course_counter];
 			$current_course_counter++;
 		}
 
@@ -83,10 +86,12 @@ function check_details ($user) {
 			echo "&nbsp;  &nbsp; $term  &nbsp;  $code  &nbsp;  $outcome<br>";
 		}
 
-		$current_term = $user->getCourses()[$current_course_counter]->getTerm();
+
+		//$current_term = $user->getCourses()[$current_course_counter]->getTerm();
 
 	}
 
+	/*
 	//last term
 	foreach ($current_planned_courses as $passed_course) {
 		if ($passed_course->getOutcome() == 0 || $passed_course->getOutcome() == 1) {
@@ -113,6 +118,8 @@ function check_details ($user) {
 		}
 		echo "&nbsp;  &nbsp; $term  &nbsp;  $code  &nbsp;  $outcome<br>";
 	}
+	*/
+	//echo count($current_passed_courses);
 
 
 }
