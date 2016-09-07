@@ -24,14 +24,12 @@
 
     <!-- Connect to the PostgreSQL databases -->
     <?php include("inc/pgsql.php"); ?>
-    <!-- Courses initialisation -->
-    <?php include("inc/courses_init.php"); ?>
     <!-- Include neccessary helper functions -->
     <?php include("inc/helper_functions.php"); ?>
     <!-- Include neccessary user functions -->
     <?php include("inc/user_functions.php"); ?>
-    <!-- User initialisation -->
-    <?php include("inc/user_init.php"); ?>
+    <!-- Initialisation -->
+    <?php include("inc/init.php"); ?>
 </head>
 
 <body>
@@ -105,8 +103,6 @@
     <script src="inc/navbar.js"></script>
     <!-- Search box event handler -->
     <script src="inc/search.js"></script>
-    <!-- Pathwayys event handler -->
-    <script src="inc/pathways.js"></script>
 
     <!-- Bootstrap core JavaScript -->
     <!-- Placed at the end of the document so the pages load faster -->

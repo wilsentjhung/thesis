@@ -1,8 +1,8 @@
 <?php
 
-// Recommend courses based on popularity among other students with similar subjects
-// @param $user - current user
-// @return $recommendations - array of 100 recommended course
+// Recommend courses based on popularity among other students with similar subjects.
+// @param $user - current user (User)
+// @return $recommendations - recommended courses (String[])
 function recommendPopularCourses($user) {
     include("inc/pgsql.php");
     global $courses;
@@ -37,10 +37,10 @@ function recommendPopularCourses($user) {
 }
 
 // Check whether the given course can be taken based on all its requirement types
-// i.e. prerequisites, corequisites, equivalence requirements, exclusion requirements
-// @param $course_to_check - course code to check
-// @param $courses_passed - array of passed Course objects
-// @param $user - current user
+// i.e. prerequisites, corequisites, equivalence requirements, exclusion requirements.
+// @param $course_to_check - course code to check (String)
+// @param $courses_passed - courses passed (Course[])
+// @param $user - current user (User)
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
@@ -104,10 +104,10 @@ function checkEligibility($course_to_check, $courses_passed, $user) {
     return $test_outcome;
 }
 
-// Check whether the given course can be taken based on its prerequisites
-// @param $course_to_check - course code to check
-// @param $courses_passed - array of passed Course objects
-// @param $user - current user
+// Check whether the given course can be taken based on its prerequisites.
+// @param $course_to_check - course code to check (String)
+// @param $courses_passed - courses passed (Course[])
+// @param $user - current user (User)
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
@@ -228,10 +228,10 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
     return eval("return {$prereq_evaluation_string};");
 }
 
-// Check whether the given course can be taken based on its corequisites
-// @param $course_to_check - course code to check
-// @param $courses_passed - array of passed Course objects
-// @param $user - current user
+// Check whether the given course can be taken based on its corequisites.
+// @param $course_to_check - course code to check (String)
+// @param $courses_passed - courses passed (Course[])
+// @param $user - current user (User)
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
@@ -352,10 +352,10 @@ function checkCoreq($course_to_check, $courses_passed, $user) {
     return eval("return {$coreq_evaluation_string};");
 }
 
-// Check whether the given course can be taken based on its equivalence requirements
-// @param $course_to_check - course code to check
-// @param $courses_passed - array of passed Course objects
-// @param $user - current user
+// Check whether the given course can be taken based on its equivalence requirements.
+// @param $course_to_check - course code to check (String)
+// @param $courses_passed - courses passed (Course[])
+// @param $user - current user (User)
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
@@ -396,10 +396,10 @@ function checkEquiv($course_to_check, $courses_passed, $user) {
     return eval("return {$equiv_evaluation_string};");
 }
 
-// Check whether the given course can be taken based on its exclusion requirements
-// @param $course_to_check - course code to check
-// @param $courses_passed - array of passed Course objects
-// @param $user - current user
+// Check whether the given course can be taken based on its exclusion requirements.
+// @param $course_to_check - course code to check (String)
+// @param $courses_passed - courses passed (Course[])
+// @param $user - current user (User)
 // @return 1 if eligible
 //         0 if ineligible
 //         -1 if error
@@ -440,10 +440,10 @@ function checkExcl($course_to_check, $courses_passed, $user) {
     return eval("return {$excl_evaluation_string};");
 }
 
-// Check whether the user has taken the given course previously
-// @param $course_to_check - course code to check
-// @param $courses_passed - array of passed Course objects
-// @param $user - current user
+// Check whether the user has taken the given course previously.
+// @param $course_to_check - course code to check (String)
+// @param $courses_passed - courses passed (Course[])
+// @param $user - current user (User)
 // @return 1 if taken
 //         0 if not taken
 function hasDoneCourse($course_to_check, $courses_passed, $user) {
@@ -456,7 +456,12 @@ function hasDoneCourse($course_to_check, $courses_passed, $user) {
     return 0;
 }
 
-// Check whether the user meets the minimum UOC for the course
+// Check whether the user meets the minimum UOC for the course.
+// @param $uoc_required - UOC required (int)
+// @param $pattern - pattern to check (String)
+// @param $courses_passed - courses passed (Course[])
+// @return "true" if eligible
+//         "false" if ineligible
 function calculateUOCCourses($uoc_required, $pattern, $courses_passed) {
     $uoc_acquired = 0;
     $keys = array_keys($courses_passed);
@@ -474,9 +479,9 @@ function calculateUOCCourses($uoc_required, $pattern, $courses_passed) {
     }
 }
 
-// Get the title of the given course
-// @param $code - course code
-// @return $title - course title
+// Get the title of the given course.
+// @param $code - course code (String)
+// @return $title - course title (String)
 function getTitleOfCourse($code) {
     global $courses;
     $title = null;
@@ -490,9 +495,9 @@ function getTitleOfCourse($code) {
     return $title;
 }
 
-// Get the UOC of the given course
-// @param $code - course code
-// @return $uoc - course UOC
+// Get the UOC of the given course.
+// @param $code - course code (String)
+// @return $uoc - course UOC (int)
 function getUOCOfCourse($code) {
     global $courses;
     $uoc = null;
@@ -506,68 +511,4 @@ function getUOCOfCourse($code) {
     return $uoc;
 }
 
-
-
-
-
-
-
-
-    //course_to_check is course code + career
-
-    //suggest all courses the student is eligible to take
-    function suggest1($user, $courses) {
-
-        $keys = array_keys($courses);
-        //key is course code + career
-        foreach ($keys as $key) {
-            if (strcmp($user->getProgram()->getCareer(), $courses[$key]->getCareer()) == 0) {
-                get_eligibility($user, $key, $courses);
-            }
-        }
-
-    }
-
-    //WIP
-    //suggest similar topics based on student course titles
-    /*function suggest3($user, $courses) {
-        $courses_passed = $user->getPassedCourses();
-        foreach ($courses_passed  as $c) {
-            $suggest_query = "SELECT s.title
-                              FROM course_enrolments ce
-                              JOIN courses c on ce.course_id = c.id
-                              JOIN subjects s on c.subject_id = s.id
-                              WHERE student_id = 3407134 AND
-                              (grade = 'PC' OR grade = 'PS' OR grade = 'CR' OR grade = 'DN'
-                                OR grade = 'HD' OR grade = 'SY')";
-        $suggest_result = pg_query($sims_db_connection, $suggest_query);
-
-        }
-
-    }*/
-
-    //WIP
-    //suggest similar topics based on student course codes
-    function suggest4($user, $courses) {
-        $codes = array();
-        $courses_passed = $user->getPassedCourses();
-        foreach ($courses_passed as $c) {
-            $codes[$c->getCode()] = 1;
-        }
-
-
-    }
-
-    //suggest2($user, $courses);
-
-    //echo $courses["COMP1917UG"]->getCode();
-
-
-    /*SELECT s.title
-    FROM course_enrolments ce
-    JOIN courses c on ce.course_id = c.id
-    JOIN subjects s on c.subject_id = s.id
-    WHERE student_id = 3407134 AND
-    (grade = 'PC' OR grade = 'PS' OR grade = 'CR' OR grade = 'DN' OR grade = 'HD' OR grade = 'SY')
-    */
 ?>

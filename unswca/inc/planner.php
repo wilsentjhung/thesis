@@ -63,7 +63,7 @@ foreach ($user->getRemainingCCRequirements() as $raw_defn) {
     $remaining_uoc = $raw_defn->getMax() - $raw_defn->getMin();
     $percentage = (100*$remaining_uoc)/$raw_defn->getMax();
     echo "<a data-toggle='collapse' data-parent='#accordion' href='#accordion-content-{$i}' aria-expanded='false' aria-controls='accordion-content-{$i}'>";
-    echo "{$raw_defn->getTitle()} ({$raw_defn->getRulT()})";
+    echo "{$raw_defn->getTitle()}";
     echo "</a></h4></div>";
     echo "<div class='progress' style='height: 10px;'><div id='progress-{$i}' class='progress-bar-info' role='progressbar' aria-valuenow='{$remaining_uoc}' aria-valuemin='0' aria-valuemax='{$raw_defn->getMax()}' style='height: 10px; width: {$percentage}%;'></div></div>";
     // Show remaining courses for this requirement
@@ -85,7 +85,7 @@ foreach ($user->getRemainingPERequirements() as $raw_defn) {
     $remaining_uoc = $raw_defn->getMax() - $raw_defn->getMin();
     $percentage = (100*$remaining_uoc)/$raw_defn->getMax();
     echo "<a data-toggle='collapse' data-parent='#accordion' href='#accordion-content-{$i}' aria-expanded='false' aria-controls='accordion-content-{$i}'>";
-    echo "{$raw_defn->getTitle()} ({$raw_defn->getRulT()})";
+    echo "{$raw_defn->getTitle()}";
     echo "</a></h4></div>";
     echo "<div class='progress' style='height: 10px;'><div id='progress-{$i}' class='progress-bar-info' role='progressbar' aria-valuenow='{$remaining_uoc}' aria-valuemin='0' aria-valuemax='{$raw_defn->getMax()}' style='height: 10px; width: {$percentage}%;'></div></div>";
     // Show remaining courses for this requirement
@@ -105,17 +105,20 @@ echo "</div></div>";
 ?>
 
 <script>
-$(function () {
-    $("[data-toggle='popover']").popover()
-})
-$(".popover-dismiss").popover({
-  trigger: 'focus'
-})
+
 // ================================================================================================
 // Planner event handler ==========================================================================
 // ================================================================================================
 var numTerms = <?php echo json_encode($num_terms); ?>;
 var numRequirements = <?php echo json_encode($num_requirements); ?>;
+
+$(function () {
+    $("[data-toggle='popover']").popover()
+})
+
+$(".popover-dismiss").popover({
+  trigger: 'focus'
+})
 
 function drag(ev) {
     ev.dataTransfer.setData("text", ev.target.id + "&" + ev.target.textContent);
@@ -143,7 +146,7 @@ function drop(ev) {
             var percentage = (100*progressVal)/max;
 
             if (progressVal >= 0 && progressVal <= max) {
-                $.post("checker.php", {course_to_check: textData, courses_passed: coursesPassed}).success(function(data) {
+                $.post("inc/checker.php", {course_to_check: textData, courses_passed: coursesPassed}).success(function(data) {
                     if (data == 1) {
                         coursesPassed.push(textData + "-100-HD");
                         $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");

@@ -1,15 +1,20 @@
 <?php
 
 if (isset($_POST["course_to_check"]) && isset($_POST["courses_passed"])) {
-    include("inc/session.php");
-    include("inc/pgsql.php");
-    include("inc/courses_init.php");
-    include("inc/helper_functions.php");
-    include("inc/user_functions.php");
-    include("inc/user_reinit.php");
+    session_start();
+
+    include("helper_functions.php");
+    include("user_functions.php");
+    include("obj/course_taken.php");
+    include("obj/stream_taken.php");
+    include("obj/program_taken.php");
+    include("obj/course.php");
+    include("obj/user.php");
 
     $course_to_check = $_POST["course_to_check"];
     $courses_passed = $_POST["courses_passed"];
+    $user = unserialize($_SESSION["user"]);
+    $courses = unserialize($_SESSION["courses"]);
     $i = 0;
     $courses_passed_obj = array();
 

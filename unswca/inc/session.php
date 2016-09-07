@@ -9,7 +9,7 @@ $result = pg_query($sims_db_connection, $query);
 $rows = pg_fetch_array($result);
 $login_session = $rows["id"];
 
-if(!isset($login_session)){
+if (!isset($login_session)) {
     pg_close($sims_db_connection);
     header("Location: index.php");
 }
