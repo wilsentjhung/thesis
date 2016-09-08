@@ -14,7 +14,7 @@ $query = "SELECT p.course_code AS code, p.title AS title, p.career AS career, p.
 $result = pg_query($aims_db_connection, $query);
 while ($rows = pg_fetch_array($result)) {
     $course = new Course($rows["code"], $rows["title"], $rows["career"], $rows["uoc"], $rows["prereq"], $rows["coreq"], $rows["equiv"], $rows["excl"]);
-    $key = $course->getCode() . $course->getCareer();
+    $key = $course->getCode() . $course->getCareer();    
     $courses[$key] = $course;
 }
 

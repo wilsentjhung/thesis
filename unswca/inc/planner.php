@@ -55,7 +55,7 @@ echo "</div>";
 $done_uoc = $user->getProgram()->getUOC() - $user->getRemainingUOC();
 $percentage = (100*$done_uoc)/$user->getProgram()->getUOC();
 $percentageText = round($percentage, 2);
-echo "<div class='progress'><div id='main-progress' class='progress-bar' role='progressbar' aria-valuenow='{$done_uoc}' aria-valuemin='0' aria-valuemax='{$user->getProgram()->getUOC()}' style='width: {$percentage}%;'>$percentageText%</div></div>";
+echo "<div class='progress'><div id='main-progress' class='progress-bar progress-bar-striped active' role='progressbar' aria-valuenow='{$done_uoc}' aria-valuemin='0' aria-valuemax='{$user->getProgram()->getUOC()}' style='width: {$percentage}%;'>$percentageText%</div></div>";
 
 // Show progression-checker =======================================================================
 $i = 0;
@@ -71,7 +71,7 @@ foreach ($user->getRemainingCCRequirements() as $raw_defn) {
     echo "<a data-toggle='collapse' data-parent='#accordion' href='#accordion-content-{$i}' aria-expanded='false' aria-controls='accordion-content-{$i}'>";
     echo "{$raw_defn->getTitle()}";
     echo "</a></h4></div>";
-    echo "<div class='progress' style='height: 10px;'><div id='progress-{$i}' class='progress-bar-info' role='progressbar' aria-valuenow='{$done_uoc}' aria-valuemin='0' aria-valuemax='{$raw_defn->getMax()}' style='height: 10px; width: {$percentage}%;'></div></div>";
+    echo "<div class='progress' style='height: 10px;'><div id='progress-{$i}' class='progress-bar progress-bar-info' role='progressbar' aria-valuenow='{$done_uoc}' aria-valuemin='0' aria-valuemax='{$raw_defn->getMax()}' style='height: 10px; width: {$percentage}%;'></div></div>";
     // Show remaining courses for this requirement
     echo "<div id='accordion-content-{$i}' class='panel-collapse collapse' role='tabpanel' aria-labelledby='accordion-heading-{$i}'>";
     echo "<div id='requirement-{$i}-{$raw_defn->getMax()}' class='requirement btn-group' role='group' ondrop='drop(event)' ondragover='allowDrop(event)' style='min-height: 20px;'>";
@@ -93,7 +93,7 @@ foreach ($user->getRemainingPERequirements() as $raw_defn) {
     echo "<a data-toggle='collapse' data-parent='#accordion' href='#accordion-content-{$i}' aria-expanded='false' aria-controls='accordion-content-{$i}'>";
     echo "{$raw_defn->getTitle()}";
     echo "</a></h4></div>";
-    echo "<div class='progress' style='height: 10px;'><div id='progress-{$i}' class='progress-bar-info' role='progressbar' aria-valuenow='{$done_uoc}' aria-valuemin='0' aria-valuemax='{$raw_defn->getMax()}' style='height: 10px; width: {$percentage}%;'></div></div>";
+    echo "<div class='progress' style='height: 10px;'><div id='progress-{$i}' class='progress-bar progress-bar-info' role='progressbar' aria-valuenow='{$done_uoc}' aria-valuemin='0' aria-valuemax='{$raw_defn->getMax()}' style='height: 10px; width: {$percentage}%;'></div></div>";
     // Show remaining courses for this requirement
     echo "<div id='accordion-content-{$i}' class='panel-collapse collapse' role='tabpanel' aria-labelledby='accordion-heading-{$i}'>";
     echo "<div id='requirement-{$i}-{$raw_defn->getMax()}' class='requirement btn-group' role='group' ondrop='drop(event)' ondragover='allowDrop(event)' style='min-height: 20px;'>";
@@ -168,31 +168,55 @@ function drop(ev) {
         var maxNumCoursesInTerm = 0;
         var numCoursesInTerm = ev.target.childElementCount;
 
-        if (termCode.includes("s")) {       // Normal semester
+        if (termCode.includes("s")) {           // Normal semester
             maxNumCoursesInTerm = 5;
-        } else if (termCode.includes("x")) { // Summer semester
+        } else if (termCode.includes("x")) {    // Summer semester
             maxNumCoursesInTerm = 2;
         }
 
         if (numCoursesInTerm <= maxNumCoursesInTerm) {
-            mainProgressVal += unitUOC;
-            var mainPercentage = (100*mainProgressVal)/requiredUOC;
-            progressVal += unitUOC;
-            var percentage = (100*progressVal)/max;
+            // If unit is dragged from requirement div
+            if (parentId.includes("requirement")) {
+                mainProgressVal += unitUOC;
+                var mainPercentage = (100*mainProgressVal)/requiredUOC;
+                progressVal += unitUOC;
+                var percentage = (100*progressVal)/max;
 
-            if (progressVal >= 0 && progressVal <= max) {
+                if (progressVal >= 0 && progressVal <= max) {
+                    var courseToCheck = unitText;
+                    var termToCheck = termCode;
+                    var coursesUpToTerm = getCoursesUpToTerm(termCode);
+
+                    $.post("inc/checker.php", {course_to_check: courseToCheck, term_to_check: termToCheck, courses_up_to_term: coursesUpToTerm}).success(function(data) {
+                        if (data == 1) {
+                            $("#" + mainProgressId).attr("aria-valuenow", mainProgressVal).css("width", mainPercentage + "%");
+                            $("#" + mainProgressId).text(mainPercentage.toFixed(2) + "%");
+                            $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
+                            ev.target.appendChild(document.getElementById(unitId));
+                            coursePool.push(unitText + "-100-HD-" + termCode);
+                        } else {
+                            // TODO Feedback on required requirements
+                        }
+        			});
+                }
+            // If unit is dragged from term div
+            } else if (parentId.includes("term")) {
+                var oldTermCode = parentId.split("-")[2];
+                removeCourseFromCoursePool(unitText + "-100-HD-" + oldTermCode);
+
                 var courseToCheck = unitText;
-                var coursesBeforeTerm = getCoursesBeforeTerm(termCode);
+                var termToCheck = termCode;
+                var coursesUpToTerm = getCoursesUpToTerm(termCode);
 
-                $.post("inc/checker.php", {course_to_check: unitText, courses_passed: coursesBeforeTerm}).success(function(data) {
+                $.post("inc/checker.php", {course_to_check: courseToCheck, term_to_check: termToCheck, courses_up_to_term: coursesUpToTerm}).success(function(data) {
                     if (data == 1) {
-                        $("#" + mainProgressId).attr("aria-valuenow", mainProgressVal).css("width", mainPercentage + "%");
-                        $("#" + mainProgressId).text(mainPercentage.toFixed(2) + "%");
-                        $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
                         ev.target.appendChild(document.getElementById(unitId));
                         coursePool.push(unitText + "-100-HD-" + termCode);
+                    } else {
+                        // TODO Feedback on required requirements
+                        coursePool.push(unitText + "-100-HD-" + oldTermCode);
                     }
-    			});
+                });
             }
         }
     // If target ID to drop the dragged unit is requirement div
@@ -217,21 +241,31 @@ function drop(ev) {
     }
 }
 
-// Get all courses from the course pool array (coursePool) that are taken before the given term code.
+function checkCoursesEligibility() {
+    for (var i = 0; i < coursePool.length; i++) {
+        var code = coursePool[i].split("-")[0];
+        var mark = coursePool[i].split("-")[1];
+        var grade = coursePool[i].split("-")[2];
+        var term = coursePool[i].split("-")[3];
+        var coursesUpToTerm = getCoursesUpToTerm(term);
+    }
+}
+
+// Get all courses from the course pool array (coursePool) that are taken up to the given term code included.
 // @param term - term code (String)
-// @return coursesBeforeTerm - courses taken before the given term code (String[])
-function getCoursesBeforeTerm(term) {
-    var coursesBeforeTerm = [];
+// @return coursesUpToTerm - courses taken before the given term code (String[])
+function getCoursesUpToTerm(term) {
+    var coursesUpToTerm = [];
 
     for (var i = 0; i < coursePool.length; i++) {
         var termCode = coursePool[i].split("-")[3];
 
-        if (whichTermMoreRecent(term, termCode) == 1) {
-            coursesBeforeTerm.push(coursePool[i]);
+        if (whichTermMoreRecent(term, termCode) == 0 || whichTermMoreRecent(term, termCode) == 1) {
+            coursesUpToTerm.push(coursePool[i]);
         }
     }
 
-    return coursesBeforeTerm;
+    return coursesUpToTerm;
 }
 
 // Get the next term code given the term code.

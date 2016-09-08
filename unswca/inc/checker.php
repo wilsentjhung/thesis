@@ -1,6 +1,6 @@
 <?php
 
-if (isset($_POST["course_to_check"]) && isset($_POST["courses_passed"])) {
+if (isset($_POST["course_to_check"]) && isset($_POST["term_to_check"]) && isset($_POST["courses_up_to_term"])) {
     session_start();
 
     include("helper_functions.php");
@@ -12,22 +12,29 @@ if (isset($_POST["course_to_check"]) && isset($_POST["courses_passed"])) {
     include("obj/user.php");
 
     $course_to_check = $_POST["course_to_check"];
-    $courses_passed = $_POST["courses_passed"];
+    $term_to_check = $_POST["term_to_check"];
+    $courses_up_to_term = $_POST["courses_up_to_term"];
     $user = unserialize($_SESSION["user"]);
     $courses = unserialize($_SESSION["courses"]);
     $i = 0;
-    $courses_passed_obj = array();
+    $courses_up_to_term_obj = array();
+    $current_courses = array();
 
-    foreach ($courses_passed as $course_passed) {
-        $code = explode("-", $course_passed)[0];
-        $title = getTitleOfCourse($code);
-        $mark = explode("-", $course_passed)[1];
-        $grade = explode("-", $course_passed)[2];
-        $uoc = getUOCOfCourse($code);
-        $courses_passed_obj[$code] = new CourseTaken($code, "", $title, $grade, $user->getProgram()->getCareer(), $uoc, "");
+    foreach ($courses_up_to_term as $course) {
+        $code = explode("-", $course)[0];
+        $title = getTitleOfCourse($code, $user);
+        $mark = explode("-", $course)[1];
+        $grade = explode("-", $course)[2];
+        $uoc = getUOCOfCourse($code, $user);
+        $term = explode("-", $course)[3];
+
+        $courses_up_to_term_obj[$code] = new CourseTaken($code, "", $title, $grade, $user->getProgram()->getCareer(), $uoc, $term);
+        if ($term != $term_to_check) {
+            $current_courses[$code] = new CourseTaken($code, "", $title, $grade, $user->getProgram()->getCareer(), $uoc, $term);
+        }
     }
 
-    $output = checkEligibility($course_to_check, $courses_passed_obj, $user);
+    $output = checkEligibility($course_to_check, $courses_up_to_term_obj, $current_courses, $user);
 
     echo json_encode($output);
 }

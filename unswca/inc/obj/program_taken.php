@@ -33,6 +33,14 @@ class ProgramTaken {
         return $this->career;
     }
 
+    /*public function getPsuedoCareer() {
+        if ($this->career != "UG") {
+            return "PG";
+        } else {
+            return "UG";
+        }
+    }*/
+
     public function getUOC() {
         return $this->uoc;
     }
