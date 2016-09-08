@@ -14,9 +14,11 @@ foreach ($user->getCourses() as $course) {
     } else if ($course->getOutcome() == 1) {
         echo "<tbody><tr class='success'>"; // Passed course
     } else if ($course->getOutcome() == 2) {
-        echo "<tbody><tr class='danger'>"; // Failed course
+        echo "<tbody><tr class='danger'>";  // Failed course
     } else if ($course->getOutcome() == 3) {
-        echo "<tbody><tr class='info'>";    // Not applicable course
+        echo "<tbody><tr class='warning'>"; // Unrecorded course
+    } else if ($course->getOutcome() == 4) {
+        echo "<tbody><tr class='info'>";    // Other course
     }
     echo "<td class='col-sm-1'>" . $i++ . "</td>";
     echo "<td>{$course->getCode()}</td>";

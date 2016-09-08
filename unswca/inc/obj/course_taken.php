@@ -59,7 +59,8 @@ class CourseTaken {
     // @return 0 if active course
     //         1 if passed course
     //         2 if failed course
-    //         3 if not applicable course (i.e. exchange, research course)
+    //         3 if unrecorded course
+    //         4 if other course (i.e. exchange, research course)
     private function checkCourseOutcome($mark, $grade) {
         if ($mark == "" && $grade == "") {
             return 0; // Active course
@@ -67,8 +68,10 @@ class CourseTaken {
             return 1; // Passed course
         } else if ((is_numeric($mark) && $mark < 50 && $grade != "PC") || $grade == "FL" || $grade == "AF" || $grade == "UF") {
             return 2; // Failed course
+        } else if ($grade == "NF" || $grade == "AW" || $grade == "PW" || $grade == "WC" || $grade == "WD" || $grade == "WJ") {
+            return 3; // Unrecorded course
         } else {
-            return 3; // Not applicable course
+            return 4; // Other course
         }
     }
 }

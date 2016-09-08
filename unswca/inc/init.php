@@ -24,7 +24,7 @@ $user = new User($login_session, $courses);
 $i = 0;
 $courses_passed = array();
 foreach ($user->getPassedCourses() as $course) {
-    $courses_passed[$i++] = "{$course->getCode()}-{$course->getMark()}-{$course->getGrade()}";
+    $courses_passed[$i++] = "{$course->getCode()}-{$course->getMark()}-{$course->getGrade()}-{$course->getTerm()}";
 }
 
 $_SESSION["courses"] = serialize($courses);
@@ -35,5 +35,6 @@ $_SESSION["user"] = serialize($user);
 <script>
     var startTerm = <?php echo json_encode($user->getCourses()[0]->getTerm()); ?>;
     var currentTerm = <?php echo json_encode($user->getCourses()[count($user->getCourses()) - 1]->getTerm()); ?>;
+    var requiredUOC = <?php echo json_encode($user->getProgram()->getUOC()); ?>;
     var coursesPassed = <?php echo json_encode($courses_passed); ?>;
 </script>

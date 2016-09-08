@@ -1,6 +1,10 @@
 <?php
 
-// Check if the given course is available as GenEd based on the program's faculty
+// Check if the given course is available as GenEd based on the program's faculty.
+// @param $faculty - user's program's faculty (String)
+// @param $course - course code to check (String)
+// @return true if available
+//         false if unavailable
 function canBeGenEd($faculty, $course) {
     include("pgsql.php");
 
@@ -17,7 +21,9 @@ function canBeGenEd($faculty, $course) {
     }
 }
 
-// Get the school and faculty responsible for the given program, stream or course code
+// Get the school and faculty responsible for the given program, stream or course code.
+// @param $code - program, stream or course code (String)
+// @return $result - DB result (require pg_fetch_array)
 function getSchoolAndFaculty($code) {
     include("pgsql.php");
     $result = NULL;
@@ -45,12 +51,72 @@ function getSchoolAndFaculty($code) {
     return $result;
 }
 
-function isDualAward($code) {
+// Get the applicability of the given program.
+// @param $program - program code (String)
+// @return "S" if single award
+//         "I" if dual award within the same faculty
+//         "C" if dual award with different faculty
+function getProgramApplicability($program) {
+    include("pgsql.php");
+
+    if (!isDualAward($program)) {
+        return "S";
+    } else {
+        $i = 0;
+        $programs = array();
+
+        $query = "SELECT r.nss_id AS program_code
+                  FROM program_records pr, dp_constituent_programs dp, records r
+                  WHERE pr.code LIKE '$program' AND pr.id = dp.program AND dp.single_deg_prog = r.id";
+        $result = pg_query($aims_db_connection, $query);
+        while ($rows = pg_fetch_array($result)) {
+            $programs[$i++] = $rows["program_code"];
+        }
+
+        $faculty1 = pg_fetch_array(getSchoolAndFaculty($programs[0]))["faculty"];
+        $faculty2 = pg_fetch_array(getSchoolAndFaculty($programs[1]))["faculty"];
+
+        if ($faculty1 == $faculty2) {
+            return "I";
+        } else {
+            return "C";
+        }
+    }
+}
+
+// Get the single award programs of the given dual award program.
+// @param $program - dual award program code (String)
+// @return $single_award_programs - single award program codes (String[])
+function findSingleAwardPrograms($program) {
+    include("pgsql.php");
+    $i = 0;
+    $single_award_programs = array();
+
+    if (isDualAward($program)) {
+        $query = "SELECT r.nss_id AS program_code
+                  FROM program_records pr, dp_constituent_programs dp, records r
+                  WHERE pr.code LIKE '$program' AND pr.id = dp.program AND dp.single_deg_prog = r.id";
+        $result = pg_query($aims_db_connection, $query);
+        while ($rows = pg_fetch_array($result)) {
+            $single_award_programs[$i++] = $rows["program_code"];
+        }
+    } else {
+        $single_award_programs[$i++] = $program;
+    }
+
+    return $single_award_programs;
+}
+
+// Check if the given program is dual award.
+// @param $program - program code to check (String)
+// @return true if dual award
+//         false if single award
+function isDualAward($program) {
     include("pgsql.php");
 
     $query = "SELECT is_dual_award
               FROM program_records
-              WHERE code LIKE '$code'";
+              WHERE code LIKE '$program'";
     $result = pg_query($aims_db_connection, $query);
     $rows = pg_fetch_array($result);
 
@@ -61,14 +127,14 @@ function isDualAward($code) {
     }
 }
 
-// Get the next term code given the term code
-// @param $code - term code
-// @return $next_term - next term code
-function getNextTerm($code) {
+// Get the next term code given the term code.
+// @param $term - term code (String)
+// @return $next_term - next term code (String)
+function getNextTerm($term) {
     $next_term = NULL;
-    $year = intval(substr($code, 0, 2));
-    $season = substr($code, 2, 1);
-    $semester = intval(substr($code, 3, 1));
+    $year = intval(substr($term, 0, 2));
+    $season = substr($term, 2, 1);
+    $semester = intval(substr($term, 3, 1));
 
     if ($season == "x") {
         $year++;
@@ -89,7 +155,9 @@ function getNextTerm($code) {
     return $next_term;
 }
 
-// Change the raw definition to be PHP-readable
+// Change the raw definition to be PHP-readable.
+// @param $raw_defn - raw definition (String)
+// @result $raw_defn - PHP-readable raw definition (String)
 function toPHPRawDefn($raw_defn) {
     $raw_defn = str_ireplace("nil", "", $raw_defn);
     $raw_defn = str_ireplace("none", "", $raw_defn);
@@ -101,7 +169,9 @@ function toPHPRawDefn($raw_defn) {
     return $raw_defn;
 }
 
-// Change the PostgreSQL-readable raw definition to be UI-readable
+// Change the PostgreSQL-readable raw definition to be UI-readable.
+// @param $raw_defn - raw definition (String)
+// @result $raw_defn - PHP-readable raw definition (String)
 function toUIRawDefn($raw_defn) {
     $raw_defn = str_ireplace(".", "#", $raw_defn);
     $raw_defn = str_ireplace("|", " or ", $raw_defn);
@@ -110,7 +180,10 @@ function toUIRawDefn($raw_defn) {
     return $raw_defn;
 }
 
-// Remove specific elements from the given array
+// Remove specific elements from the given array.
+// @param $array - target array
+// @param $del_vals - values to be removed
+// @param array_values($array) - modified array
 function removeArrayElements($array, $del_vals) {
     if (is_array($del_vals)) {
          foreach ($del_vals as $del_key => $del_val) {

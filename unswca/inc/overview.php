@@ -79,9 +79,6 @@ foreach ($user->getStreams() as $stream) {
 echo "</tbody></table></div>";
 
 // TESTING AND DEBUGGING vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-// echo checkEligibility("COMP4121", $user->getPassedCourses());
-// foreach ($user->recommendPopularCourses($courses) as $course) {
-//    echo $course->getCode() . "<br>";
-// }
+
 
 ?>

@@ -20,7 +20,7 @@ foreach ($user->getCourses() as $course) {
         if ($j > 0) {
             echo "</div>";
         }
-        echo "<div id='term-{$i}' class='term btn-group-vertical' role='group' style='background-color: #CCCCCC; border: 2px solid #CCCCCC;'><h5>{$course->getTerm()}</h5>";
+        echo "<div id='term-{$i}-{$course->getTerm()}' class='term btn-group-vertical' role='group' style='background-color: #CCCCCC; border: 2px solid #CCCCCC;'><h5>{$course->getTerm()}</h5>";
         $k = $i;
         $l = 0;
         $m = 0;
@@ -45,11 +45,17 @@ while ($j < $user->getRemainingUOC()) {
     if (substr($next_term, 2, 1) == "s") {
         $j += 24;
     }
-    echo "<div id='term-{$i}' class='term btn-group-vertical' role='group' ondrop='drop(event)' ondragover='allowDrop(event)' style='background-color: lightblue; border: 2px solid lightblue;'><h5>{$next_term}</h5></div>";
+    echo "<div id='term-{$i}-{$next_term}' class='term btn-group-vertical' role='group' ondrop='drop(event)' ondragover='allowDrop(event)' style='background-color: lightblue; border: 2px solid lightblue;'><h5>{$next_term}</h5></div>";
     $i++;
 }
 $num_terms = $i;
 echo "</div>";
+
+// Show main progress bar =========================================================================
+$done_uoc = $user->getProgram()->getUOC() - $user->getRemainingUOC();
+$percentage = (100*$done_uoc)/$user->getProgram()->getUOC();
+$percentageText = round($percentage, 2);
+echo "<div class='progress'><div id='main-progress' class='progress-bar' role='progressbar' aria-valuenow='{$done_uoc}' aria-valuemin='0' aria-valuemax='{$user->getProgram()->getUOC()}' style='width: {$percentage}%;'>$percentageText%</div></div>";
 
 // Show progression-checker =======================================================================
 $i = 0;
@@ -60,18 +66,18 @@ foreach ($user->getRemainingCCRequirements() as $raw_defn) {
     echo "<div class='panel-default'>";
     echo "<div id='accordion-heading-{$i}' class='panel-heading' role='tab' style='max-height: 50px;'><h4 class='panel-title'>";
     // Show requirement title and its own progress bar
-    $remaining_uoc = $raw_defn->getMax() - $raw_defn->getMin();
-    $percentage = (100*$remaining_uoc)/$raw_defn->getMax();
+    $done_uoc = $raw_defn->getMax() - $raw_defn->getMin();
+    $percentage = (100*$done_uoc)/$raw_defn->getMax();
     echo "<a data-toggle='collapse' data-parent='#accordion' href='#accordion-content-{$i}' aria-expanded='false' aria-controls='accordion-content-{$i}'>";
     echo "{$raw_defn->getTitle()}";
     echo "</a></h4></div>";
-    echo "<div class='progress' style='height: 10px;'><div id='progress-{$i}' class='progress-bar-info' role='progressbar' aria-valuenow='{$remaining_uoc}' aria-valuemin='0' aria-valuemax='{$raw_defn->getMax()}' style='height: 10px; width: {$percentage}%;'></div></div>";
+    echo "<div class='progress' style='height: 10px;'><div id='progress-{$i}' class='progress-bar-info' role='progressbar' aria-valuenow='{$done_uoc}' aria-valuemin='0' aria-valuemax='{$raw_defn->getMax()}' style='height: 10px; width: {$percentage}%;'></div></div>";
     // Show remaining courses for this requirement
     echo "<div id='accordion-content-{$i}' class='panel-collapse collapse' role='tabpanel' aria-labelledby='accordion-heading-{$i}'>";
-    echo "<div id='requirement-{$i}' class='requirement btn-group' role='group' ondrop='drop(event)' ondragover='allowDrop(event)' style='min-height: 20px;'>";
+    echo "<div id='requirement-{$i}-{$raw_defn->getMax()}' class='requirement btn-group' role='group' ondrop='drop(event)' ondragover='allowDrop(event)' style='min-height: 20px;'>";
     $j = 0;
     foreach ($raw_defn->getRawDefn() as $defn) {
-        echo "<button type='button' id='cc-unit-{$i}-{$j}-{$defn->getUOC()}-{$raw_defn->getMax()}' class='btn btn-primary' data-toggle='popover' title='TEST' data-content='TEST' draggable='true' ondragstart='drag(event)' style='border-radius: 0px; width: 200px;'>{$defn->getCode()}</button>";
+        echo "<button type='button' id='cc-unit-{$i}-{$j}-{$defn->getUOC()}' class='btn btn-primary' draggable='true' ondragstart='drag(event)' style='border-radius: 0px; width: 200px;'>{$defn->getCode()}</button>";
         $j++;
     }
     echo "</div></div></div>";
@@ -82,18 +88,18 @@ foreach ($user->getRemainingPERequirements() as $raw_defn) {
     echo "<div class='panel-default'>";
     echo "<div id='accordion-heading-{$i}' class='panel-heading' role='tab' style='max-height: 50px;'><h4 class='panel-title'>";
     // Show requirement title and its own progress bar
-    $remaining_uoc = $raw_defn->getMax() - $raw_defn->getMin();
-    $percentage = (100*$remaining_uoc)/$raw_defn->getMax();
+    $done_uoc = $raw_defn->getMax() - $raw_defn->getMin();
+    $percentage = (100*$done_uoc)/$raw_defn->getMax();
     echo "<a data-toggle='collapse' data-parent='#accordion' href='#accordion-content-{$i}' aria-expanded='false' aria-controls='accordion-content-{$i}'>";
     echo "{$raw_defn->getTitle()}";
     echo "</a></h4></div>";
-    echo "<div class='progress' style='height: 10px;'><div id='progress-{$i}' class='progress-bar-info' role='progressbar' aria-valuenow='{$remaining_uoc}' aria-valuemin='0' aria-valuemax='{$raw_defn->getMax()}' style='height: 10px; width: {$percentage}%;'></div></div>";
+    echo "<div class='progress' style='height: 10px;'><div id='progress-{$i}' class='progress-bar-info' role='progressbar' aria-valuenow='{$done_uoc}' aria-valuemin='0' aria-valuemax='{$raw_defn->getMax()}' style='height: 10px; width: {$percentage}%;'></div></div>";
     // Show remaining courses for this requirement
     echo "<div id='accordion-content-{$i}' class='panel-collapse collapse' role='tabpanel' aria-labelledby='accordion-heading-{$i}'>";
-    echo "<div id='requirement-{$i}' class='requirement btn-group' role='group' ondrop='drop(event)' ondragover='allowDrop(event)' style='min-height: 20px;'>";
+    echo "<div id='requirement-{$i}-{$raw_defn->getMax()}' class='requirement btn-group' role='group' ondrop='drop(event)' ondragover='allowDrop(event)' style='min-height: 20px;'>";
     $j = 0;
     foreach ($raw_defn->getRawDefn() as $defn) {
-        echo "<button type='button' id='pe-unit-{$i}-{$j}-{$defn->getUOC()}-{$raw_defn->getMax()}' class='btn btn-warning' draggable='true' ondragstart='drag(event)' style='border-radius: 0px; width: 200px;'>{$defn->getCode()}</button>";
+        echo "<button type='button' id='pe-unit-{$i}-{$j}-{$defn->getUOC()}' class='btn btn-warning' draggable='true' ondragstart='drag(event)' style='border-radius: 0px; width: 200px;'>{$defn->getCode()}</button>";
         $j++;
     }
     echo "</div></div></div>";
@@ -109,6 +115,7 @@ echo "</div></div>";
 // ================================================================================================
 // Planner event handler ==========================================================================
 // ================================================================================================
+var coursePool = coursesPassed;
 var numTerms = <?php echo json_encode($num_terms); ?>;
 var numRequirements = <?php echo json_encode($num_requirements); ?>;
 
@@ -117,11 +124,14 @@ $(function () {
 })
 
 $(".popover-dismiss").popover({
-  trigger: 'focus'
+    trigger: 'focus'
 })
 
 function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.id + "&" + ev.target.textContent);
+    var parentId = $(ev.target).parent().attr("id");
+    var unitId = ev.target.id;
+    var unitText = ev.target.textContent;
+    ev.dataTransfer.setData("text", parentId + "&" + unitId + "&" + unitText);
 }
 
 function allowDrop(ev) {
@@ -131,51 +141,107 @@ function allowDrop(ev) {
 function drop(ev) {
     ev.preventDefault();
     var data = ev.dataTransfer.getData("text");
-    var idData = data.split("&")[0];
-    var textData = data.split("&")[1];
-    var requirementAt = ev.target.id.split("-")[1];
-    var unitFrom = idData.split("-")[2];
-    var unitUOC = parseInt(idData.split("-")[4]);
-    var max = parseInt(idData.split("-")[5]);
+
+    var parentId = data.split("&")[0];
+    var parentIndex = parseInt(parentId.split("-")[1]);
+
+    var unitId = data.split("&")[1];
+    var unitFrom = parseInt(unitId.split("-")[2]);
+    var unitUOC = parseInt(unitId.split("-")[4]);
+
+    var unitText = data.split("&")[2];
+
+    var mainProgressId = document.getElementById("main-progress").id;
+    var mainProgressVal = parseInt($("#" + mainProgressId).attr("aria-valuenow"));
+
     var progressId = document.getElementById("progress-" + unitFrom).id;
     var progressVal  = parseInt($("#" + progressId).attr("aria-valuenow"));
 
-    if (ev.target.type != "button") {
-        if (ev.target.id.includes("term") && ev.target.childElementCount <= 5) {
+    var targetId = ev.target.id;
+    var targetIndex = parseInt(targetId.split("-")[1]);
+
+    // If target ID to drop the dragged unit is term div
+    if (targetId.includes("term")) {
+        var max = parseInt(parentId.split("-")[2]);
+        var termCode = targetId.split("-")[2];
+
+        var maxNumCoursesInTerm = 0;
+        var numCoursesInTerm = ev.target.childElementCount;
+
+        if (termCode.includes("s")) {       // Normal semester
+            maxNumCoursesInTerm = 5;
+        } else if (termCode.includes("x")) { // Summer semester
+            maxNumCoursesInTerm = 2;
+        }
+
+        if (numCoursesInTerm <= maxNumCoursesInTerm) {
+            mainProgressVal += unitUOC;
+            var mainPercentage = (100*mainProgressVal)/requiredUOC;
             progressVal += unitUOC;
             var percentage = (100*progressVal)/max;
 
             if (progressVal >= 0 && progressVal <= max) {
-                $.post("inc/checker.php", {course_to_check: textData, courses_passed: coursesPassed}).success(function(data) {
-                    if (data == 1) {
-                        coursesPassed.push(textData + "-100-HD");
-                        $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
-                        ev.target.appendChild(document.getElementById(idData));
-                    }
-  				});
-            }
-        } else if (ev.target.id.includes("requirement")) {
-            if (unitFrom == requirementAt) {
-                progressVal -= unitUOC;
-                var percentage = (100*progressVal)/max;
+                var courseToCheck = unitText;
+                var coursesBeforeTerm = getCoursesBeforeTerm(termCode);
 
-                if (progressVal >= 0 && progressVal <= max) {
-                    $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
-                    ev.target.appendChild(document.getElementById(idData));
-                }
+                $.post("inc/checker.php", {course_to_check: unitText, courses_passed: coursesBeforeTerm}).success(function(data) {
+                    if (data == 1) {
+                        $("#" + mainProgressId).attr("aria-valuenow", mainProgressVal).css("width", mainPercentage + "%");
+                        $("#" + mainProgressId).text(mainPercentage.toFixed(2) + "%");
+                        $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
+                        ev.target.appendChild(document.getElementById(unitId));
+                        coursePool.push(unitText + "-100-HD-" + termCode);
+                    }
+    			});
+            }
+        }
+    // If target ID to drop the dragged unit is requirement div
+    } else if (targetId.includes("requirement")) {
+        var max = parseInt(targetId.split("-")[2]);
+        var termCode = parentId.split("-")[2];
+
+        mainProgressVal -= unitUOC;
+        var mainPercentage = (100*mainProgressVal)/requiredUOC;
+        progressVal -= unitUOC;
+        var percentage = (100*progressVal)/max;
+
+        if (unitFrom == targetIndex) {
+            if (progressVal >= 0 && progressVal <= max) {
+                $("#" + mainProgressId).attr("aria-valuenow", mainProgressVal).css("width", mainPercentage + "%");
+                $("#" + mainProgressId).text(mainPercentage.toFixed(2) + "%");
+                $("#" + progressId).attr("aria-valuenow", progressVal).css("width", percentage + "%");
+                ev.target.appendChild(document.getElementById(unitId));
+                removeCourseFromCoursePool(unitText + "-100-HD-" + termCode);
             }
         }
     }
 }
 
-// Get the next term code given the term code
-// @param code - term code
-// @return nextTerm - next term code
-function getNextTerm(code) {
+// Get all courses from the course pool array (coursePool) that are taken before the given term code.
+// @param term - term code (String)
+// @return coursesBeforeTerm - courses taken before the given term code (String[])
+function getCoursesBeforeTerm(term) {
+    var coursesBeforeTerm = [];
+
+    for (var i = 0; i < coursePool.length; i++) {
+        var termCode = coursePool[i].split("-")[3];
+
+        if (whichTermMoreRecent(term, termCode) == 1) {
+            coursesBeforeTerm.push(coursePool[i]);
+        }
+    }
+
+    return coursesBeforeTerm;
+}
+
+// Get the next term code given the term code.
+// @param term - term code (String)
+// @return nextTerm - next term code (String)
+function getNextTerm(term) {
     var nextTerm = null;
-    var year = parseInt(code.substr(0, 2));
-    var season = code.substr(2, 1);
-    var semester = parseInt(code.substr(3, 1));
+    var year = parseInt(term.substr(0, 2));
+    var season = term.substr(2, 1);
+    var semester = parseInt(term.substr(3, 1));
 
     if (season == "x") {
         year++;
@@ -196,12 +262,61 @@ function getNextTerm(code) {
     return nextTerm;
 }
 
-// Remove the given course from the coursesPassed array
-// @param course - course code to be removed
-function removeCourseFromCoursesPassed(course) {
-    var index = coursesPassed.indexOf(course);
+// Check which one of the given two term codes is more recent.
+// @param term1 - first term code to check (String)
+// @param term2 - second term code to check (String)
+// @return 0 if term1 and term2 are the same
+//         1 if term1 is more recent than term2
+//         2 if term2 is more recent than term1
+//         -1 if error
+function whichTermMoreRecent(term1, term2) {
+    var year1 = parseInt(term1.substr(0, 2));
+    var season1 = term1.substr(2, 1);
+    var semester1 = parseInt(term1.substr(3, 1));
+
+    var year2 = parseInt(term2.substr(0, 2));
+    var season2 = term2.substr(2, 1);
+    var semester2 = parseInt(term2.substr(3, 1));
+
+    if (term1 == term2) {
+        return 0;
+    } else {
+        if (year1 == year2) {
+            if (season1 == season2) {
+                if (semester1 == semester2) {
+                    return 0;
+                } else {
+                    if (semester1 > semester2) {
+                        return 1;
+                    } else  if (semester1 < semester2) {
+                        return 2;
+                    }
+                }
+            } else {
+                if (season1 == "x" && season2 == "s") {
+                    return 1;
+                } else if (season1 == "s" && season2 == "x") {
+                    return 2;
+                }
+            }
+        } else {
+            if (year1 > year2) {
+                return 1;
+            } else if (year1 < year2) {
+                return 2;
+            }
+        }
+    }
+
+    return -1;
+}
+
+// Remove the given course from the course pool array (coursePool).
+// @param course - course code to be removed (String)
+function removeCourseFromCoursePool(course) {
+    var index = coursePool.indexOf(course);
     if (index >= 0) {
-        coursesPassed.splice(index, 1);
+        coursePool.splice(index, 1);
     }
 }
 

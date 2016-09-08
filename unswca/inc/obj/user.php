@@ -41,6 +41,7 @@ class User {
         $school_faculty = pg_fetch_array(getSchoolAndFaculty($code));
         $school = $school_faculty["school"];
         $faculty = $school_faculty["faculty"];
+        // Get the program requirements
         $requirements = $this->getRequirements($code, $career);
         $is_dual_award = isDualAward($code);
 
@@ -59,6 +60,7 @@ class User {
             $school_faculty = pg_fetch_array(getSchoolAndFaculty($code));
             $school = $school_faculty["school"];
             $faculty = $school_faculty["faculty"];
+
             $requirements = $this->getRequirements($code, $program->getCareer());
 
             $stream = new StreamTaken($code, $title, $career, $st_uoc, $school, $faculty, $requirements);
@@ -96,7 +98,7 @@ class User {
             } else if ($course->getOutcome() == 2) {    // Failed course
                 $numerator += $course->getMark()*$course->getUOC();
                 $denominator += $course->getUOC();
-            } else if ($course->getOutcome() == 3) {    // i.e. exchange, research course
+            } else if ($course->getOutcome() == 4) {    // i.e. exchange, research course
                 $uoc += $course->getUOC();
             }
         }
@@ -272,80 +274,145 @@ class User {
         $requirements = array();
         $course_list = array();
 
-        $query = "SELECT rec_t, rul_t, title, appl, min, max, raw_defn
-                  FROM active_rules
-                  WHERE LOWER(code) LIKE LOWER('$code')
-                  ORDER BY title";
-        $result = pg_query($aims_db_connection, $query);
-        while ($rows = pg_fetch_array($result)) {
-            $j = 0;
-            $raw_defn = array();
-            $rec_t = $rows["rec_t"];
-            $rul_t = $rows["rul_t"];
-            $title = $rows["title"];
-            $appl = $rows["appl"];
-            $min = $rows["min"];
-            $max = $rows["max"];
-            if ($max == null) {
-                $max = $min;
-            }
-            $defn_list = explode(",", toPHPRawDefn($rows["raw_defn"]));
-            foreach ($defn_list as $defn) {
-                $key = $defn . $career;
+        if (strlen($code) == 4) {           // Program
+            $program_appl = getProgramApplicability($code);
+            $programs = findSingleAwardPrograms($code);
 
-                if (array_key_exists($key, $this->all_courses)) {
-                    $course_code = $this->all_courses[$key]->getCode();
-                    $course_title = $this->all_courses[$key]->getTitle();
-                    $course_career = $this->all_courses[$key]->getCareer();
-                    $course_uoc = $this->all_courses[$key]->getUOC();
-                    $course_prereq = $this->all_courses[$key]->getPrereq();
-                    $course_coreq = $this->all_courses[$key]->getCoreq();
-                    $course_equiv = $this->all_courses[$key]->getEquiv();
-                    $course_excl = $this->all_courses[$key]->getExcl();
-                    $raw_defn[$j++] = new Course($course_code, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
-                } else if (strpos($defn, "|") !== false) {
-                    $course_codes = str_ireplace("(", "", $defn);
-                    $course_codes = str_ireplace(")", "", $course_codes);
-                    $course_code = explode("|", $course_codes)[0];
-                    $key = $course_code . $career;
-                    $course_title = $this->all_courses[$key]->getTitle();
-                    $course_career = $this->all_courses[$key]->getCareer();
-                    $course_uoc = $this->all_courses[$key]->getUOC();
-                    $course_prereq = $this->all_courses[$key]->getPrereq();
-                    $course_coreq = $this->all_courses[$key]->getCoreq();
-                    $course_equiv = $this->all_courses[$key]->getEquiv();
-                    $course_excl = $this->all_courses[$key]->getExcl();
-                    $raw_defn[$j++] = new Course($defn, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
-                } else if (strpos($defn, ".") !== false && strlen($code) != 4) {
-                    foreach ($this->all_courses as $course) {
-                        $key = $course->getCode() . $career;
-
-                        if (preg_match("/$defn/", $course->getCode()) && array_key_exists($key, $this->all_courses)) {
-                            $course_code = $this->all_courses[$key]->getCode();
-                            $course_title = $this->all_courses[$key]->getTitle();
-                            $course_career = $this->all_courses[$key]->getCareer();
-                            $course_uoc = $this->all_courses[$key]->getUOC();
-                            $course_prereq = $this->all_courses[$key]->getPrereq();
-                            $course_coreq = $this->all_courses[$key]->getCoreq();
-                            $course_equiv = $this->all_courses[$key]->getEquiv();
-                            $course_excl = $this->all_courses[$key]->getExcl();
-                            $raw_defn[$j++] = new Course($course_code, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
-                        }
+            foreach ($programs as $program) {
+                $query = "SELECT rec_t, rul_t, title, appl, min, max, raw_defn
+                          FROM all_rules
+                          WHERE LOWER(code) LIKE LOWER('$program')
+                          ORDER BY title";
+                $result = pg_query($aims_db_connection, $query);
+                while ($rows = pg_fetch_array($result)) {
+                    $rec_t = $rows["rec_t"];
+                    $rul_t = $rows["rul_t"];
+                    $title = $rows["title"];
+                    $appl = $rows["appl"];
+                    $min = $rows["min"];
+                    $max = $rows["max"];
+                    if ($max == null) {
+                        $max = $min;
                     }
-                } else {
-                    $raw_defn[$j++] = new Course($defn, null, $career, null, null, null, null, null);
+
+                    if ($appl == $program_appl || $appl == "A") {
+                        $j = 0;
+                        $raw_defn = array();
+                        $defn_list = explode(",", toPHPRawDefn($rows["raw_defn"]));
+
+                        foreach ($defn_list as $defn) {
+                            $key = $defn . $career;
+
+                            if (array_key_exists($key, $this->all_courses)) {
+                                $course_code = $this->all_courses[$key]->getCode();
+                                $course_title = $this->all_courses[$key]->getTitle();
+                                $course_career = $this->all_courses[$key]->getCareer();
+                                $course_uoc = $this->all_courses[$key]->getUOC();
+                                $course_prereq = $this->all_courses[$key]->getPrereq();
+                                $course_coreq = $this->all_courses[$key]->getCoreq();
+                                $course_equiv = $this->all_courses[$key]->getEquiv();
+                                $course_excl = $this->all_courses[$key]->getExcl();
+                                $raw_defn[$j++] = new Course($course_code, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                            } else if (strpos($defn, "|") !== false) {
+                                $course_codes = str_ireplace("(", "", $defn);
+                                $course_codes = str_ireplace(")", "", $course_codes);
+                                $course_code = explode("|", $course_codes)[0];
+                                $key = $course_code . $career;
+                                $course_title = $this->all_courses[$key]->getTitle();
+                                $course_career = $this->all_courses[$key]->getCareer();
+                                $course_uoc = $this->all_courses[$key]->getUOC();
+                                $course_prereq = $this->all_courses[$key]->getPrereq();
+                                $course_coreq = $this->all_courses[$key]->getCoreq();
+                                $course_equiv = $this->all_courses[$key]->getEquiv();
+                                $course_excl = $this->all_courses[$key]->getExcl();
+                                $raw_defn[$j++] = new Course($defn, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                            } else {
+                                $raw_defn[$j++] = new Course($defn, null, $career, null, null, null, null, null);
+                            }
+                        }
+
+                        $requirement = new Requirement($rec_t, $rul_t, $title, $appl, $min, $max, $raw_defn);
+                        $requirements[$i++] = $requirement;
+                    }
                 }
             }
+        } else if (strlen($code) == 6) {    // Stream
+            $query = "SELECT rec_t, rul_t, title, appl, min, max, raw_defn
+                      FROM all_rules
+                      WHERE LOWER(code) LIKE LOWER('$code')
+                      ORDER BY title";
+            $result = pg_query($aims_db_connection, $query);
+            while ($rows = pg_fetch_array($result)) {
+                $rec_t = $rows["rec_t"];
+                $rul_t = $rows["rul_t"];
+                $title = $rows["title"];
+                $appl = $rows["appl"];
+                $min = $rows["min"];
+                $max = $rows["max"];
+                if ($max == null) {
+                    $max = $min;
+                }
 
-            $requirement = new Requirement($rec_t, $rul_t, $title, $appl, $min, $max, $raw_defn);
-            $requirements[$i++] = $requirement;
+                $j = 0;
+                $raw_defn = array();
+                $defn_list = explode(",", toPHPRawDefn($rows["raw_defn"]));
+
+                foreach ($defn_list as $defn) {
+                    $key = $defn . $career;
+
+                    if (array_key_exists($key, $this->all_courses)) {
+                        $course_code = $this->all_courses[$key]->getCode();
+                        $course_title = $this->all_courses[$key]->getTitle();
+                        $course_career = $this->all_courses[$key]->getCareer();
+                        $course_uoc = $this->all_courses[$key]->getUOC();
+                        $course_prereq = $this->all_courses[$key]->getPrereq();
+                        $course_coreq = $this->all_courses[$key]->getCoreq();
+                        $course_equiv = $this->all_courses[$key]->getEquiv();
+                        $course_excl = $this->all_courses[$key]->getExcl();
+                        $raw_defn[$j++] = new Course($course_code, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                    } else if (strpos($defn, "|") !== false) {
+                        $course_codes = str_ireplace("(", "", $defn);
+                        $course_codes = str_ireplace(")", "", $course_codes);
+                        $course_code = explode("|", $course_codes)[0];
+                        $key = $course_code . $career;
+                        $course_title = $this->all_courses[$key]->getTitle();
+                        $course_career = $this->all_courses[$key]->getCareer();
+                        $course_uoc = $this->all_courses[$key]->getUOC();
+                        $course_prereq = $this->all_courses[$key]->getPrereq();
+                        $course_coreq = $this->all_courses[$key]->getCoreq();
+                        $course_equiv = $this->all_courses[$key]->getEquiv();
+                        $course_excl = $this->all_courses[$key]->getExcl();
+                        $raw_defn[$j++] = new Course($defn, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                    } else if (strpos($defn, ".") !== false && strlen($code) != 4) {
+                        foreach ($this->all_courses as $course) {
+                            $key = $course->getCode() . $career;
+
+                            if (preg_match("/$defn/", $course->getCode()) && array_key_exists($key, $this->all_courses)) {
+                                $course_code = $this->all_courses[$key]->getCode();
+                                $course_title = $this->all_courses[$key]->getTitle();
+                                $course_career = $this->all_courses[$key]->getCareer();
+                                $course_uoc = $this->all_courses[$key]->getUOC();
+                                $course_prereq = $this->all_courses[$key]->getPrereq();
+                                $course_coreq = $this->all_courses[$key]->getCoreq();
+                                $course_equiv = $this->all_courses[$key]->getEquiv();
+                                $course_excl = $this->all_courses[$key]->getExcl();
+                                $raw_defn[$j++] = new Course($course_code, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                            }
+                        }
+                    } else {
+                        $raw_defn[$j++] = new Course($defn, null, $career, null, null, null, null, null);
+                    }
+                }
+
+                $requirement = new Requirement($rec_t, $rul_t, $title, $appl, $min, $max, $raw_defn);
+                $requirements[$i++] = $requirement;
+            }
         }
 
         return $requirements;
     }
 
     // Get the info of the program or course taken.
-    // @param $zid - zID (int)
     // @param $type - either "program" or "stream" (String)
     // @return $result - DB result (require pg_fetch_array)
     private function getProgramOrStreamInfo($type) {

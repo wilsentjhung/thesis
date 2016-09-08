@@ -480,14 +480,14 @@ function calculateUOCCourses($uoc_required, $pattern, $courses_passed) {
 }
 
 // Get the title of the given course.
-// @param $code - course code (String)
+// @param $course - course code (String)
 // @return $title - course title (String)
-function getTitleOfCourse($code) {
+function getTitleOfCourse($course) {
     global $courses;
     $title = null;
 
     foreach ($courses as $course) {
-        if ($course == $code) {
+        if ($course == $course) {
             $title = $course->getTitle();
         }
     }
@@ -496,14 +496,14 @@ function getTitleOfCourse($code) {
 }
 
 // Get the UOC of the given course.
-// @param $code - course code (String)
+// @param $course - course code (String)
 // @return $uoc - course UOC (int)
-function getUOCOfCourse($code) {
+function getUOCOfCourse($course) {
     global $courses;
     $uoc = null;
 
     foreach ($courses as $course) {
-        if ($course == $code) {
+        if ($course == $course) {
             $uoc = $course->getUOC();
         }
     }
