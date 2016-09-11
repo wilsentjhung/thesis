@@ -1,7 +1,7 @@
 <?php
 
 include("inc/pgsql.php");
-include("inc/courses_init.php");
+include("inc/init.php");
 include("inc/helper_functions.php");
 include("inc/user_functions.php");
 include("inc/obj/user.php");
@@ -13,6 +13,7 @@ $result = pg_query($sims_db_connection, $query);
 
 while ($rows = pg_fetch_array($result)) {
 	$zid = $rows["student_id"];
+	$login_session = $zid;
 //$zid = 1098725;
 	echo "$zid";
 	if (strcmp($zid, "2138285") == 0 || strcmp($zid, "2221228") == 0) {

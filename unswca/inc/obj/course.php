@@ -9,8 +9,9 @@ class Course {
     var $coreq;
     var $equiv;
     var $excl;
+    var $subject_area;
 
-    public function __construct($code, $title, $career, $uoc, $prereq, $coreq, $equiv, $excl) {
+    public function __construct($code, $title, $career, $uoc, $prereq, $coreq, $equiv, $excl, $subject_area) {
         $this->code = $code;
         $this->title = $title;
         $this->career = $career;
@@ -19,6 +20,7 @@ class Course {
         $this->coreq = $coreq;
         $this->equiv = $equiv;
         $this->excl = $excl;
+        $this->subject_area = $subject_area;
     }
 
     public function getCode() {
@@ -51,6 +53,10 @@ class Course {
 
     public function getExcl() {
         return $this->excl;
+    }
+
+    public function getSubjectArea() {
+        return $this->subject_area;
     }
 }
 

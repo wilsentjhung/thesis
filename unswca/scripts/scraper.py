@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#need course title and uoc
+#working on ARTS3283
 
 import urllib2
 import re
@@ -211,6 +211,8 @@ for subject_code_website in subject_code_websites:
 				normalised_pre_req = "(ACCT5930 || COMM5003 || ACCT5906)"
 			elif (codeInUrl[0] == "ACCT5967"):
 				normalised_pre_req = "(ACCT5997)"
+			elif (codeInUrl[0] == "ACCT6001"):
+				normalised_pre_req = "(ACCT5997)"
 			elif (codeInUrl[0] == "ACTL1101"):
 				normalised_pre_req = "(MATH1151 && (3586 || 3587 || 3588 || 3589 || 3155 || 3154 || 4737))"
 			elif (codeInUrl[0] == "ACTL2102"):
@@ -233,6 +235,9 @@ for subject_code_website in subject_code_websites:
 			elif (codeInUrl[0] == "ACTL5105" or codeInUrl[0] == "ACTL5109"):
 				#needs normalised_co_req for 5109
 				normalised_pre_req = "(ACTL5101 && ACTL5102 && (8411 || 8416))"
+			elif (codeInUrl[0] == "ACTL5303"):
+				#!!!
+				normalised_pre_req = "(ACTL5109 || (ACTL5100))"
 			#ACTL5200 needs normalised_co_req
 			elif (codeInUrl[0] == "ACTL5401"):
 				normalised_pre_req = "(7273 || 5273 || 9273 || SCHOOL_APPROVAL)"
@@ -255,23 +260,104 @@ for subject_code_website in subject_code_websites:
 				normalised_pre_req = "(30_UOC_LEVEL_1 && ARTS1005)"
 			elif (codeInUrl[0] == "ARTS2038"):
 				#normalised_pre_req = "(30_UOC && 12_UOC_LEVEL_1_ENGLISH)"
-				normalised_pre_req = "(30_UOC && 12_UOC_LEVEL_1_ARTS)"
+				normalised_pre_req = "(30_UOC && 12_SUBJECT_UOC_LEVEL_1_ENGLISH)"
 			elif (codeInUrl[0] == "ARTS2050"):
 				#!!!
 				normalised_pre_req = "(12_UOC_LEVEL_1 && (FACULTY_ARTS))"
 			elif (codeInUrl[0] == "ARTS2065"):
 				normalised_pre_req = "(30_UOC_LEVEL_1 && (ARTS1060 || ARTS1062))"
 			elif (codeInUrl[0] == "ARTS2195"):
-				normalised_pre_req = "(30_UOC at Level 1 && (ARTS1190 || ARTS1270 || ARTS1900))"
+				normalised_pre_req = "(30_UOC_LEVEL_1 && (ARTS1190 || ARTS1270 || ARTS1900))"
 			elif (codeInUrl[0] == "ARTS2452"):
 				#???
 				normalised_pre_req = "(ARTS3451 || ARTS3452 || ARTS3453)"
 			elif (codeInUrl[0] == "ARTS2690" or codeInUrl[0] == "ARTS2692" or codeInUrl[0] == "ARTS2693" 
 				or codeInUrl[0] == "ARTS2694" or codeInUrl[0] == "ARTS2696"):
 				#normalised_pre_req = "(30_UOC && 12_UOC_LEVEL_1_LINGUISTICS)"
-				normalised_pre_req = "(30_UOC && 12_UOC_LEVEL_1_ARTS)"
+				normalised_pre_req = "(30_UOC && 12_SUBJECT_UOC_LEVEL_1_LINGUISTICS)"
 
 			##ARTS[345]### skipped
+			elif (codeInUrl[0] == "ARTS3011"):
+				normalised_pre_req = "(48_UOC && 6_UOC_LEVEL_1 && (6_SUBJECT_UOC_LEVEL_1_CREATIVE || 6_SUBJECT_UOC_LEVEL_1_DANCE || 6_SUBJECT_UOC_LEVEL_1_ENGLISH))"
+			elif (codeInUrl[0] == "ARTS3012"):
+				normalised_pre_req = "((48_UOC && 6_UOC_LEVEL_1 && (6_SUBJECT_UOC_LEVEL_2_DANCE || 6_SUBJECT_UOC_LEVEL_2_FILM)) || (96_UOC || MAJOR_MEDIA))"
+			elif (codeInUrl[0] == "ARTS3013"):
+				normalised_pre_req = "((24_SUBJECT_UOC_DANCE || 24_SUBJECT_UOC_THEATRE || (96_UOC && (MAJOR_MUSIC || STREAM_MUSIC))) && 70_WAM)"
+			elif (codeInUrl[0] == "ARTS3021"):
+				normalised_pre_req = "(72_UOC && 18_SUBJECT_UOC_CREATIVE && MAJOR_CREATIVE_WRITING)"
+			elif (codeInUrl[0] == "ARTS3031"):
+				normalised_pre_req = "((72_UOC && ARTS1030 && (ARTS1010 || ARTS1031) && MAJOR_ENGLISH) || (72_UOC && ARTS1010 && ARTS2032 && MAJOR_CREATIVE_WRITING))"
+			elif (codeInUrl[0] == "ARTS3034"):
+				normalised_pre_req = "(24_SUBJECT_UOC_ENGLISH || 24_SUBJECT_UOC_CREATIVE)"
+			elif (codeInUrl[0] == "ARTS3039" or codeInUrl[0] == "ARTS3041" or codeInUrl[0] == "ARTS3047"):
+				normalised_pre_req = "(24_SUBJECT_UOC_ENGLISH)"
+			elif (codeInUrl[0] == "ARTS3048" or codeInUrl[0] == "ARTS3053"):
+				normalised_pre_req = "(48_UOC && 6_UOC_LEVEL_1 && 6_SUBJECT_UOC_LEVEL_2_ENGLISH)"
+			elif (codeInUrl[0] == "ARTS3049"):
+				normalised_pre_req = "(24_SUBJECT_UOC_ENGLISH || 24_SUBJECT_UOC_ENVIRONMENTAL || 24_SUBJECT_UOC_MEDIA)"
+			elif (codeInUrl[0] == "ARTS3050"):
+				normalised_pre_req = "(24_SUBJECT_UOC_ENGLISH || 24_SUBJECT_UOC_CREATIVE || 24_SUBJECT_UOC_ENVIRONMENTAL)"
+			elif (codeInUrl[0] == "ARTS3051"):
+				normalised_pre_req = "(48_UOC && 6_UOC_LEVEL_1 && (6_SUBJECT_UOC_LEVEL_2_ENGLISH || 6_SUBJECT_UOC_LEVEL_2_CREATIVE))"
+			elif (codeInUrl[0] == "ARTS3052"):
+				normalised_pre_req = "(72_UOC && 18_SUBJECT_UOC_ENGLISH && MAJOR_ENGLISH)"
+			elif (codeInUrl[0] == "ARTS3060"):
+				normalised_pre_req = "((24_SUBJECT_UOC_FILM || 24_SUBJECT_UOC_MEDIA) || ((ARTS1060 || ARTS1090) && 6_SUBJECT_UOC_LEVEL_2_FILM && MAJOR_MEDIA))"
+			elif (codeInUrl[0] == "ARTS3061"):
+				normalised_pre_req = "((24_SUBJECT_UOC_FILM && ARTS1060 && ARTS2065) || (90_UOC && MAJOR_MEDIA))"
+			elif (codeInUrl[0] == "ARTS3062"):
+				normalised_pre_req = "(24_SUBJECT_UOC_FILM || (ARTS1060 && 6_SUBJECT_UOC_LEVEL_2_FILM && MAJOR_MEDIA)"
+			elif (codeInUrl[0] == "ARTS3063"):
+				normalised_pre_req = "(24_SUBJECT_UOC_FILM || 24_SUBJECT_UOC_MEDIA)"
+			elif (codeInUrl[0] == "ARTS3064" or codeInUrl[0] == "ARTS3066"):
+				normalised_pre_req = "((48_UOC && 6_UOC_LEVEL_1 && (6_SUBJECT_UOC_LEVEL_2_FILM || 6_SUBJECT_UOC_LEVEL_2_MEDIA)) || (ARTS1060 && 6_SUBJECT_UOC_LEVEL_2_FILM && MAJOR_MEDIA))"
+			elif (codeInUrl[0] == "ARTS3065"):
+				normalised_pre_req = "(72_UOC && ARTS1060 && ARTS1062 && ARTS2061 && MAJOR_FILM)"
+			elif (codeInUrl[0] == "ARTS3067"):
+				normalised_pre_req = "(72_UOC && 18_SUBJECT_UOC_FILM && MAJOR_FILM)"
+			elif (codeInUrl[0] == "ARTS3090"):
+				normalised_pre_req = "(72_UOC && ARTS1090 && (ARTS1062 || ARTS1091 || ARTS1121) && MAJOR_MEDIA)"
+			elif (codeInUrl[0] == "ARTS3091" or codeInUrl[0] == "ARTS3092"):
+				normalised_pre_req = "(24_SUBJECT_UOC_MEDIA || (ARTS1090 && 6_SUBJECT_UOC_LEVEL_2_MEDIA && MAJOR_MEDIA))"
+			elif (codeInUrl[0] == "ARTS3093" or codeInUrl[0] == "ARTS3096"):
+				normalised_pre_req = "((48_UOC && 6_UOC_LEVEL_1 && 6_SUBJECT_UOC_LEVEL_2_MEDIA) || (ARTS1090 && 6_SUBJECT_UOC_LEVEL_2_MEDIA && MAJOR_MEDIA))"
+			elif (codeInUrl[0] == "ARTS3095"):
+				normalised_pre_req = "(72_UOC && 18_SUBJECT_UOC_MEDIA && MAJOR_MEDIA)"
+			elif (codeInUrl[0] == "ARTS3122"):
+				normalised_pre_req = "((72_UOC && ARTS1120 && ARTS1121 && ARTS2121 && MAJOR_THEATRE) || (72_UOC && ARTS1005 && ARTS2005 && ARTS2006 && MAJOR_DANCE))"
+			elif (codeInUrl[0] == "ARTS3123"):
+				normalised_pre_req = "(48_UOC && 6_UOC_LEVEL_1 && (6_SUBJECT_UOC_LEVEL_2_DANCE || 6_SUBJECT_UOC_LEVEL_2_THEATRE))"
+			elif (codeInUrl[0] == "ARTS3124" or codeInUrl[0] == "ARTS3126" or codeInUrl[0] == "ARTS3127"):
+				normalised_pre_req = "(24_SUBJECT_UOC_THEATRE)"
+			elif (codeInUrl[0] == "ARTS3125"):
+				normalised_pre_req = "(24_SUBJECT_UOC_THEATRE || 24_SUBJECT_UOC_DANCE || 24_SUBJECT_UOC_MEDIA)"
+			elif (codeInUrl[0] == "ARTS3131"):
+				normalised_pre_req = "(48_UOC && 6_UOC_LEVEL_1 && (6_SUBJECT_UOC_LEVEL_2_AUSTRALIAN || 6_SUBJECT_UOC_LEVEL_2_THEATRE))"
+			elif (codeInUrl[0] == "ARTS3212"):
+				normalised_pre_req = "(48_UOC && 6_UOC_LEVEL_1 && (6_SUBJECT_UOC_LEVEL_2_ASIAN || 6_SUBJECT_UOC_LEVEL_2_HISTORY))"
+			elif (codeInUrl[0] == "ARTS3217"):
+				normalised_pre_req = "(24_SUBJECT_UOC_ASIAN || 24_SUBJECT_UOC_HISTORY)"
+			elif (codeInUrl[0] == "ARTS3218"):
+				normalised_pre_req = "(24_SUBJECT_UOC_JAPANESE || 24_SUBJECT_UOC_HISTORY || 24_SUBJECT_UOC_ASIAN || 24_SUBJECT_UOC_WOMEN)"
+			elif (codeInUrl[0] == "ARTS3219"):
+				normalised_pre_req = "(24_SUBJECT_UOC_ASIAN || 24_SUBJECT_UOC_JAPANESE || 24_SUBJECT_UOC_WOMEN)"
+			elif (codeInUrl[0] == "ARTS3220"):
+				normalised_pre_req = "(48_UOC && 6_UOC_LEVEL_1 && (6_SUBJECT_UOC_LEVEL_2_ASIAN || 6_SUBJECT_UOC_LEVEL_2_HISTORY))"
+			elif (codeInUrl[0] == "ARTS3240"):
+				normalised_pre_req = "(72_UOC && ARTS2242 && MAJOR_ENVIRONMENTAL)"
+			elif (codeInUrl[0] == "ARTS3241"):
+				normalised_pre_req = "(24_SUBJECT_UOC_DEVELOPMENT || 24_SUBJECT_UOC_ENVIRONMENTAL)"
+			elif (codeInUrl[0] == "ARTS3242"):
+				normalised_pre_req = "(24_SUBJECT_UOC_HISTORY || 24_SUBJECT_UOC_ENVIRONMENTAL)"
+			elif (codeInUrl[0] == "ARTS3245"):
+				normalised_pre_req = "(48_UOC && 6_UOC_LEVEL_1 && 6_SUBJECT_UOC_LEVEL_2_ENVIRONMENTAL)"
+			elif (codeInUrl[0] == "ARTS3270"):
+				normalised_pre_req = "(72_UOC && ARTS1270 && MAJOR_HISTORY)"
+			elif (codeInUrl[0] == "ARTS3279"):
+				normalised_pre_req = "48_UOC && 6_UOC_LEVEL_1 && (6_SUBJECT_UOC_LEVEL_2_AUSTRALIAN || 6_SUBJECT_UOC_LEVEL_2_HISTORY))"
+
+
+
 			elif (codeInUrl[0] == "ATSI3008"):
 				#!!!
 				normalised_pre_req = "(120_UOC && STREAM_INDIGENOUS && REMAINING_24_UOC)"

@@ -249,6 +249,16 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
             } else {
                 $prereq_evaluation[$i] = "false";
             }
+        // Check individual prerequisite course with stream enrolment requirement
+        } else if (preg_match("/^STREAM_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
+            $user_stream = $user->getStream()->getTitle();
+            $stream = str_replace("_", " ", $matches[1]);
+
+            if (preg_match("/$stream/", strtoupper($user_stream))) {
+                $prereq_evaluation[$i] = "true";
+            } else {
+                $prereq_evaluation[$i] = "false";
+            }
         // Check individual prerequisite course with honours/advanced enrolment requirement
         } else if (preg_match("/^([A-Z]+)_MAJOR_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
             $user_major = $user->getProgram()->getTitle();
@@ -296,9 +306,44 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
 
             $regex .= ")$/";
             $prereq_evaluation[$i] = checkUOCCourses($uoc_required, $regex, $courses_passed);
+
+        //12_SUBJECT_UOC_LEVEL_1_LINGUISTICS
+        } else if (preg_match("/^([0-9]{1,3})_SUBJECT_UOC_LEVEL_([0-9])(_([A-Z]{4}))(_([A-Z]{4}))?$/", $prereq_conditions[$i], $matches)) {
+            $regex = "/^(";
+            $uoc_required = $matches[1];
+
+            for ($j = 4; $j < count($matches); $j += 2) {
+                if ($j > 4) {
+                    $regex .= "|";
+                }
+                $regex .= $matches[$j];
+                $regex .= $matches[2];
+                $regex .= "...";
+                $j += 2;
+            }
+
+            $regex .= ")$/";
+            $prereq_evaluation[$i] = checkSubjectAreaUOCCourses($uoc_required, $regex, $courses_passed);
+
+        //12_SUBJECT_UOC_LINGUISTICS
+        } else if (preg_match("/^([0-9]{1,3})_SUBJECT_UOC_(_([A-Z]{4}))(_([A-Z]{4}))?$/", $prereq_conditions[$i], $matches)) {
+            $regex = "/^(";
+            $uoc_required = $matches[1];
+
+            for ($j = 4; $j < count($matches); $j += 2) {
+                if ($j > 4) {
+                    $regex .= "|";
+                }
+                $regex .= $matches[$j];
+                $regex .= "....";
+                $j += 2;
+            }
+
+            $regex .= ")$/";
+            $prereq_evaluation[$i] = checkSubjectAreaUOCCourses($uoc_required, $regex, $courses_passed);
         // Check individual prerequisite course with minimum UOC requirement by specific area
         } else if (preg_match("/^([0-9]{1,3})_UOC_([A-Z_]+)$/", $prereq_conditions[$i], $matches)) {
-            $prereq_evaluation[$i] = checkSubjectAreaUOC($matches[1], $matches[2], $courses_passed);
+            $prereq_evaluation[$i] = checkFacultyUOC($matches[1], $matches[2], $courses_passed);
         // Check individual prerequisite course with school approval requirement
         } else if ($prereq_conditions[$i] == "SCHOOL_APPROVAL") {
             $prereq_evaluation[$i] = "false";
@@ -612,7 +657,7 @@ function checkUOCCourses($uoc_required, $pattern, $courses_passed) {
 // @param $courses_passed - courses passed (Course[])
 // @return "true" if eligible
 //         "false" if ineligible
-function checkSubjectAreaUOC($uoc_required, $faculty, $courses_passed) {
+function checkFacultyUOC($uoc_required, $faculty, $courses_passed) {
     $uoc_acquired = 0;
     $keys = array_keys($courses_passed);
     $faculty = str_replace('_', ' ', $faculty);
@@ -630,6 +675,29 @@ function checkSubjectAreaUOC($uoc_required, $faculty, $courses_passed) {
         return "false";
     }
 
+}
+
+// Check whether the user meets the minimum UOC for the course.
+// @param $uoc_required - UOC required (int)
+// @param $pattern - pattern to check (String)
+// @param $courses_passed - courses passed (Course[])
+// @return "true" if eligible
+//         "false" if ineligible
+function checkSubjectAreaUOCCourses($uoc_required, $pattern, $courses_passed) {
+    $uoc_acquired = 0;
+    $keys = array_keys($courses_passed);
+
+    foreach ($keys as $key) {
+        if (preg_match($pattern, $courses_passed[$key]->getSubjectArea())) {
+            $uoc_acquired += $courses_passed[$key]->getUOC();
+        }
+    }
+
+    if ($uoc_acquired >= $uoc_required) {
+        return "true";
+    } else {
+        return "false";
+    }
 }
 
 // Get the title of the given course.

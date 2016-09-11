@@ -327,7 +327,7 @@ class User {
                                 $course_excl = $this->all_courses[$key]->getExcl();
                                 $raw_defn[$j++] = new Course($defn, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
                             } else {
-                                $raw_defn[$j++] = new Course($defn, null, $career, null, null, null, null, null);
+                                $raw_defn[$j++] = new Course($defn, null, $career, null, null, null, null, null, null);
                             }
                         }
 
@@ -369,7 +369,8 @@ class User {
                         $course_coreq = $this->all_courses[$key]->getCoreq();
                         $course_equiv = $this->all_courses[$key]->getEquiv();
                         $course_excl = $this->all_courses[$key]->getExcl();
-                        $raw_defn[$j++] = new Course($course_code, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                        $subject_area = $this->all_courses[$key]->getSubjectArea();
+                        $raw_defn[$j++] = new Course($course_code, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl, $subject_area);
                     } else if (strpos($defn, "|") !== false) {
                         $course_codes = str_ireplace("(", "", $defn);
                         $course_codes = str_ireplace(")", "", $course_codes);
@@ -382,7 +383,8 @@ class User {
                         $course_coreq = $this->all_courses[$key]->getCoreq();
                         $course_equiv = $this->all_courses[$key]->getEquiv();
                         $course_excl = $this->all_courses[$key]->getExcl();
-                        $raw_defn[$j++] = new Course($defn, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl);
+                        $subject_area = $this->all_courses[$key]->getSubjectArea();
+                        $raw_defn[$j++] = new Course($defn, $course_title, $course_career, $course_uoc, $course_prereq, $course_coreq, $course_equiv, $course_excl, $subject_area);
                     } else if (strpos($defn, ".") !== false && strlen($code) != 4) {
                         foreach ($this->all_courses as $course) {
                             $key = $course->getCode() . $career;
@@ -400,7 +402,7 @@ class User {
                             }
                         }
                     } else {
-                        $raw_defn[$j++] = new Course($defn, null, $career, null, null, null, null, null);
+                        $raw_defn[$j++] = new Course($defn, null, $career, null, null, null, null, null, null);
                     }
                 }
 
