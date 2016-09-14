@@ -37,11 +37,11 @@ function recommendPopularCourses($user) {
 }
 
 
-function checkCondition($evaluation, $condition) {
+function checkCondition($evaluation, $condition, $i) {
     $or_flag = 0;
     $req_not_met = array();
     $temp_req_not_met = array();
-    for ($i = 0; $i <count($evaluation); $i++) {
+    for (; $i <count($evaluation); $i++) {
         if ($evaluation[$i] == 'true') {
             if (($i + 1) <count($evaluation) && $evaluation[$i] == '||') {
                 $or_flag = 1;
@@ -51,13 +51,15 @@ function checkCondition($evaluation, $condition) {
             }
         } elseif ($evaluation[$i] == '&&') {
             array_merge($req_not_met, $temp_req_not_met);
+        } elseif ($evaluation[$i] == '(') {
+            //array_merge($temp_req_not_met, checkCondition($evaluation, $condition, $i+1));
         } elseif ($evaluation[$i] == ')') {
             if ($or_flag == 1) {
                 $temp_req_not_met = array();
-
             } else {
                 array_merge($req_not_met, $temp_req_not_met);
             }
+            //return $req_not_met;
         } elseif ($evaluation[$i] == 'false') {
             $temp_req_not_met[count($temp_req_not_met)] = $condition[$i];
         }
@@ -390,7 +392,7 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
         }
     }
 
-    $req_not_met = checkCondition($prereq_evaluation, $prereq_conditions);
+    $req_not_met = checkCondition($prereq_evaluation, $prereq_conditions, 0);
 
     $prereq_evaluation_string = implode(" ", $prereq_evaluation);
     $prereq_evaluation_string = str_ireplace("||", "|", $prereq_evaluation_string);
@@ -527,7 +529,7 @@ function checkCoreq($course_to_check, $courses_passed, $user) {
         }
     }
 
-    $req_not_met = checkCondition($coreq_evaluation, $coreq_conditions);
+    $req_not_met = checkCondition($coreq_evaluation, $coreq_conditions, 0);
 
 
     $coreq_evaluation_string = implode(" ", $coreq_evaluation);
