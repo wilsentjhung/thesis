@@ -36,6 +36,40 @@ function recommendPopularCourses($user) {
     return $recommendations;
 }
 
+
+function checkCondition($evaluation, $condition) {
+    $or_flag = 0;
+    $req_not_met = array();
+    $temp_req_not_met = array();
+    for ($i = 0; $i <count($evaluation); $i++) {
+        if ($evaluation[$i] == 'true') {
+            if (($i + 1) <count($evaluation) && $evaluation[$i] == '||') {
+                $or_flag = 1;
+            } 
+            if (($i - 1) >= 0 && $evaluation[$i] == '||') {
+                $or_flag = 1;
+            }
+        } elseif ($evaluation[$i] == '&&') {
+            array_merge($req_not_met, $temp_req_not_met);
+        } elseif ($evaluation[$i] == ')') {
+            if ($or_flag == 1) {
+                $temp_req_not_met = array();
+
+            } else {
+                array_merge($req_not_met, $temp_req_not_met);
+            }
+        } elseif ($evaluation[$i] == 'false') {
+            $temp_req_not_met[count($temp_req_not_met)] = $condition[$i];
+        }
+
+
+    }
+    return $req_not_met;
+
+
+
+}
+
 // Check whether the given course can be taken based on all its requirement types
 // i.e. prerequisites, corequisites, equivalence requirements, exclusion requirements.
 // @param $course_to_check - course code to check (String)
@@ -356,6 +390,8 @@ function checkPrereq($course_to_check, $courses_passed, $user) {
         }
     }
 
+    $req_not_met = checkCondition($prereq_evaluation, $prereq_conditions);
+
     $prereq_evaluation_string = implode(" ", $prereq_evaluation);
     $prereq_evaluation_string = str_ireplace("||", "|", $prereq_evaluation_string);
     $prereq_evaluation_string = str_ireplace("&&", "&", $prereq_evaluation_string);
@@ -490,6 +526,9 @@ function checkCoreq($course_to_check, $courses_passed, $user) {
             $coreq_evaluation[$i] = $coreq_conditions[$i];
         }
     }
+
+    $req_not_met = checkCondition($coreq_evaluation, $coreq_conditions);
+
 
     $coreq_evaluation_string = implode(" ", $coreq_evaluation);
     $coreq_evaluation_string = str_ireplace("||", "|", $coreq_evaluation_string);
